@@ -6,7 +6,7 @@ import userRouter from './modules/user/user.routes.ts';
 import logger from '#utils/logger.ts';
 import morgan from 'morgan';
 
-
+// Initialize Express app
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
