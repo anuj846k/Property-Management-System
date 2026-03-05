@@ -1,5 +1,5 @@
 import cookieParser from 'cookie-parser';
-import express, { type Request, type Response, type NextFunction } from 'express';
+import express, { type Request, type Response, type NextFunction, type Express } from 'express';
 import propertyRouter from './modules/property/property.routes.ts';
 import ticketRouter from './modules/ticket/ticket.routes.ts';
 import userRouter from './modules/user/user.routes.ts';
@@ -7,7 +7,7 @@ import logger from '#utils/logger.ts';
 import morgan from 'morgan';
 
 // Initialize Express app
-const app = express();
+const app: Express = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));   
