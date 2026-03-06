@@ -219,7 +219,7 @@ export const assignTicketService = async (
     oldValue: `Technician: ${previousTechnicianId ?? 'Unassigned'}; Status: ${
       previousStatus ?? 'OPEN'
     }`,
-    newValue: `Technician: ${technician.name} (${technician.email}); Status: ASSIGNED`,
+    newValue: `Technician: ${technician.name}; Status: ASSIGNED`,
   });
 
   logger.info(
