@@ -13,11 +13,13 @@ import logger from '#utils/logger.ts';
 import propertyRouter from './modules/property/property.routes.ts';
 import ticketRouter from './modules/ticket/ticket.routes.ts';
 import userRouter from './modules/user/user.routes.ts';
+import { rateLimiterMiddleware } from './utils/rateLimiter.ts';
 
 dotenv.config();
 
 // Initialize Express app
 const app: Express = express();
+app.use(rateLimiterMiddleware);
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
