@@ -157,3 +157,21 @@ export const findActivityLogsByTicketId = async (ticketId: string) => {
     .where(eq(activityLogs.ticketId, ticketId))
     .orderBy(desc(activityLogs.createdAt));
 };
+
+type UpdateTicketInput = Partial<{
+  technicianId: string | null;
+  status: (typeof tickets.$inferSelect.status);
+  priority: (typeof tickets.$inferSelect.priority);
+}>;
+
+export const updateTicket = async (ticketId: string, data: UpdateTicketInput) => {
+  const [updated] = await db
+    .update(tickets)
+    .set({
+      ...data,
+      updatedAt: new Date(),
+    })
+    .where(eq(tickets.id, ticketId))
+    .returning();
+  return updated ?? null;
+};
