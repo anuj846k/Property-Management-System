@@ -287,3 +287,37 @@ export const getAssignedTicketsService = async (technicianId: string) => {
   logger.info(`Fetched ${tickets.length} assigned tickets for technicianId=${technicianId}`);
   return tickets;
 };
+
+export const updateTicketProgressService = async (
+  ticketId: string,
+  technicianId: string,
+  data: { status: "IN_PROGRESS" | "DONE" }
+) => {
+  const ticket = await findTicketById(ticketId);
+  if (!ticket) throw new AppError("Ticket not found", 404);
+  if (ticket.technicianId !== technicianId) {
+    throw new AppError("You do not have access to this ticket", 403);
+  }
+  const allowed: Record<string, string[]> = {
+    ASSIGNED: ["IN_PROGRESS"],
+    IN_PROGRESS: ["DONE"],
+  };
+  const next = allowed[ticket.status ?? "OPEN"];
+  if (!next || !next.includes(data.status)) {
+    throw new AppError(
+      `Cannot set status to ${data.status} from ${ticket.status}. Allowed: ${next?.join(", ") ?? "none"}`,
+      400
+    );
+  }
+  const updated = await updateTicket(ticketId, { status: data.status });
+  if (!updated) throw new AppError("Failed to update ticket", 500);
+  await createActivityLog({
+    ticketId,
+    performedBy: technicianId,
+    actionType: "STATUS_CHANGED",
+    oldValue: ticket.status,
+    newValue: data.status,
+  });
+  logger.info(`Ticket ${ticketId} progress updated to ${data.status} by technician ${technicianId}`);
+  return updated;
+};
