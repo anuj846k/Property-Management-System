@@ -155,3 +155,128 @@ export const getTicketByIdService = async (
 
   return { ticket, images, activity };
 };
+
+// Add imports
+import { findUserById } from "../user/user.repositories.ts";
+import type { TicketAssignInput, TicketUpdateInput } from "#validations/ticket.validations.ts";
+import { updateTicket } from "./ticket.repositories.ts";
+
+/**
+ * Assigns a technician to a ticket. Manager must have access to the ticket's property.
+ * Sets status to ASSIGNED and creates ASSIGNED activity log.
+ */
+export const assignTicketService = async (
+  ticketId: string,
+  managerId: string,
+  data: TicketAssignInput
+) => {
+  const ticket = await findTicketById(ticketId);
+  if (!ticket) {
+    throw new AppError("Ticket not found", 404);
+  }
+
+  // Verify manager has access (same logic as getTicketByIdService)
+  const unit = await findUnitById(ticket.unitId);
+  if (!unit) {
+    throw new AppError("Ticket unit not found", 404);
+  }
+  const property = await findPropertyById(unit.propertyId);
+  if (!property || property.managerId !== managerId) {
+    throw new AppError("You do not have access to this ticket", 403);
+  }
+
+  const technician = await findUserById(data.technicianId);
+  if (!technician) {
+    throw new AppError("Technician not found", 404);
+  }
+  if (technician.role !== "TECHNICIAN") {
+    throw new AppError("User is not a technician", 400);
+  }
+
+  const previousTechnicianId = ticket.technicianId;
+  const previousStatus = ticket.status;
+
+  const updated = await updateTicket(ticketId, {
+    technicianId: data.technicianId,
+    status: "ASSIGNED",
+  });
+
+  if (!updated) {
+    throw new AppError("Failed to assign ticket", 500);
+  }
+
+  await createActivityLog({
+    ticketId,
+    performedBy: managerId,
+    actionType: "ASSIGNED",
+    oldValue: previousTechnicianId
+      ? `Assigned to ${previousTechnicianId}`
+      : "Unassigned",
+    newValue: `Assigned to technician ${technician.name} (${technician.email})`,
+  });
+
+  logger.info(
+    `Ticket ${ticketId} assigned to technician ${data.technicianId} by manager ${managerId}`
+  );
+  return updated;
+};
+
+/**
+ * Updates ticket priority and/or status. Manager must have access to the ticket's property.
+ * Creates STATUS_CHANGED activity log for each change.
+ */
+export const updateTicketService = async (
+  ticketId: string,
+  managerId: string,
+  data: TicketUpdateInput
+) => {
+  const ticket = await findTicketById(ticketId);
+  if (!ticket) {
+    throw new AppError("Ticket not found", 404);
+  }
+
+  // Verify manager has access
+  const unit = await findUnitById(ticket.unitId);
+  if (!unit) {
+    throw new AppError("Ticket unit not found", 404);
+  }
+  const property = await findPropertyById(unit.propertyId);
+  if (!property || property.managerId !== managerId) {
+    throw new AppError("You do not have access to this ticket", 403);
+  }
+
+  const updates: Parameters<typeof updateTicket>[1] = {};
+  const activityMessages: string[] = [];
+
+  if (data.priority !== undefined && data.priority !== ticket.priority) {
+    updates.priority = data.priority;
+    activityMessages.push(`Priority changed from ${ticket.priority} to ${data.priority}`);
+  }
+  if (data.status !== undefined && data.status !== ticket.status) {
+    updates.status = data.status;
+    activityMessages.push(`Status changed from ${ticket.status} to ${data.status}`);
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return ticket; // No changes
+  }
+
+  const updated = await updateTicket(ticketId, updates);
+  if (!updated) {
+    throw new AppError("Failed to update ticket", 500);
+  }
+
+  await createActivityLog({
+    ticketId,
+    performedBy: managerId,
+    actionType: "STATUS_CHANGED",
+    oldValue: `Priority: ${ticket.priority}, Status: ${ticket.status}`,
+    newValue: activityMessages.join("; "),
+  });
+
+  logger.info(
+    `Ticket ${ticketId} updated by manager ${managerId}`,
+    { updates }
+  );
+  return updated;
+};
