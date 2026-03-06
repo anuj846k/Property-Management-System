@@ -20,3 +20,13 @@ export const findNotificationById = async (id: string) => {
       .limit(1);
     return row ?? null;
   };
+
+  // "Mark this notification as read" – update one row in the table
+export const markNotificationAsRead = async (id: string, userId: string) => {
+    const [updated] = await db
+      .update(notifications)
+      .set({ isRead: true })
+      .where(and(eq(notifications.id, id), eq(notifications.userId, userId)))
+      .returning();
+    return updated ?? null;
+  };
