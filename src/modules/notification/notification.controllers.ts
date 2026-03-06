@@ -20,3 +20,23 @@ export const getMyNotificationsController = async (req: Request, res: Response) 
       .json({ message: error.message || "Internal Server Error" });
   }
 };
+
+export const markNotificationAsReadController = async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      if (!user?.userId) {
+        throw new AppError("Unauthorized", 401);
+      }
+      const notificationId = req.params.id;
+      if (!notificationId) {
+        throw new AppError("Notification id is required", 400);
+      }
+      const updated = await markAsReadService(notificationId as string, user.userId);
+      res.status(200).json({ notification: updated });
+    } catch (error: any) {
+      logger.error(`markNotificationAsReadController error: ${error.message || error}`);
+      res
+        .status(error.statusCode || 500)
+        .json({ message: error.message || "Internal Server Error" });
+    }
+  };
