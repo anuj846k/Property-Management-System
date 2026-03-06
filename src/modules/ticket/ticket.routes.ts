@@ -30,6 +30,13 @@ ticketRouter.get(
 );
 
 ticketRouter.get(
+  '/assigned',
+  isAuthenticated,
+  authorizeRoles('TECHNICIAN'),
+  getAssignedTicketsController,
+);
+
+ticketRouter.get(
   '/',
   isAuthenticated,
   authorizeRoles('MANAGER'),
@@ -56,12 +63,6 @@ ticketRouter.patch(
   updateTicketController,
 );
 
-ticketRouter.get(
-  '/assigned',
-  isAuthenticated,
-  authorizeRoles('TECHNICIAN'),
-  getAssignedTicketsController,
-);
 
 ticketRouter.patch(
   '/:id/progress',
