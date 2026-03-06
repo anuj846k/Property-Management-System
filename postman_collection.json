@@ -5,10 +5,18 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:8000/api/v1", "type": "string" },
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000/api/v1",
+      "type": "string"
+    },
     { "key": "tenantEmail", "value": "tenant@test.com", "type": "string" },
     { "key": "managerEmail", "value": "manager@test.com", "type": "string" },
-    { "key": "technicianEmail", "value": "technician@test.com", "type": "string" },
+    {
+      "key": "technicianEmail",
+      "value": "technician@test.com",
+      "type": "string"
+    },
     { "key": "adminEmail", "value": "admin@test.com", "type": "string" },
     { "key": "password", "value": "password123", "type": "string" },
     { "key": "tenantId", "value": "", "type": "string" },
@@ -46,7 +54,10 @@
             "method": "POST",
             "url": "{{baseUrl}}/users/auth/register",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\"name\":\"Tenant User\",\"email\":\"{{tenantEmail}}\",\"password\":\"{{password}}\",\"phone\":\"1111111111\",\"role\":\"TENANT\"}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Tenant User\",\"email\":\"{{tenantEmail}}\",\"password\":\"{{password}}\",\"phone\":\"1111111111\",\"role\":\"TENANT\"}"
+            }
           }
         },
         {
@@ -55,7 +66,10 @@
             "method": "POST",
             "url": "{{baseUrl}}/users/auth/register",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\"name\":\"Manager User\",\"email\":\"{{managerEmail}}\",\"password\":\"{{password}}\",\"phone\":\"2222222222\",\"role\":\"MANAGER\"}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Manager User\",\"email\":\"{{managerEmail}}\",\"password\":\"{{password}}\",\"phone\":\"2222222222\",\"role\":\"MANAGER\"}"
+            }
           }
         },
         {
@@ -64,7 +78,10 @@
             "method": "POST",
             "url": "{{baseUrl}}/users/auth/register",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\"name\":\"Technician User\",\"email\":\"{{technicianEmail}}\",\"password\":\"{{password}}\",\"phone\":\"3333333333\",\"role\":\"TECHNICIAN\"}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Technician User\",\"email\":\"{{technicianEmail}}\",\"password\":\"{{password}}\",\"phone\":\"3333333333\",\"role\":\"TECHNICIAN\"}"
+            }
           }
         },
         {
@@ -73,7 +90,10 @@
             "method": "POST",
             "url": "{{baseUrl}}/users/auth/register",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\"name\":\"Admin User\",\"email\":\"{{adminEmail}}\",\"password\":\"{{password}}\",\"phone\":\"4444444444\",\"role\":\"ADMIN\"}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Admin User\",\"email\":\"{{adminEmail}}\",\"password\":\"{{password}}\",\"phone\":\"4444444444\",\"role\":\"ADMIN\"}"
+            }
           }
         },
         {
@@ -82,7 +102,10 @@
             "method": "POST",
             "url": "{{baseUrl}}/users/auth/login",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\"email\":\"{{tenantEmail}}\",\"password\":\"{{password}}\"}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{tenantEmail}}\",\"password\":\"{{password}}\"}"
+            }
           }
         },
         {
@@ -91,7 +114,10 @@
             "method": "POST",
             "url": "{{baseUrl}}/users/auth/login",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\"email\":\"{{managerEmail}}\",\"password\":\"{{password}}\"}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{managerEmail}}\",\"password\":\"{{password}}\"}"
+            }
           }
         },
         {
@@ -100,7 +126,10 @@
             "method": "POST",
             "url": "{{baseUrl}}/users/auth/login",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\"email\":\"{{adminEmail}}\",\"password\":\"{{password}}\"}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{adminEmail}}\",\"password\":\"{{password}}\"}"
+            }
           }
         },
         {
@@ -138,7 +167,10 @@
             "method": "POST",
             "url": "{{baseUrl}}/tickets/",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\"title\":\"Leaky faucet\",\"description\":\"Bathroom sink is leaking water\",\"priority\":\"MEDIUM\",\"propertyId\":\"{{propertyId}}\",\"unit\":\"101\"}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\":\"Leaky faucet\",\"description\":\"Bathroom sink is leaking water\",\"priority\":\"MEDIUM\",\"propertyId\":\"{{propertyId}}\",\"unit\":\"101\"}"
+            }
           }
         },
         {
@@ -146,14 +178,24 @@
           "request": {
             "method": "POST",
             "url": "{{baseUrl}}/tickets/",
-            "header": [{ "key": "Content-Type", "value": "multipart/form-data" }],
+            "header": [
+              { "key": "Content-Type", "value": "multipart/form-data" }
+            ],
             "body": {
               "mode": "formdata",
               "formdata": [
                 { "key": "title", "value": "Broken door lock", "type": "text" },
-                { "key": "description", "value": "The door lock is broken and won't open", "type": "text" },
+                {
+                  "key": "description",
+                  "value": "The door lock is broken and won't open",
+                  "type": "text"
+                },
                 { "key": "priority", "value": "HIGH", "type": "text" },
-                { "key": "propertyId", "value": "{{propertyId}}", "type": "text" },
+                {
+                  "key": "propertyId",
+                  "value": "{{propertyId}}",
+                  "type": "text"
+                },
                 { "key": "unit", "value": "101", "type": "text" },
                 { "key": "images", "type": "file", "src": [] }
               ]
@@ -166,7 +208,10 @@
             "method": "POST",
             "url": "{{baseUrl}}/tickets/",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\"title\":\"Electrical issue\",\"description\":\"Power outlet not working in kitchen\",\"priority\":\"URGENT\",\"propertyId\":\"{{propertyId}}\",\"unit\":\"102\",\"imageUrls\":[\"https://example.com/image1.jpg\"]}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\":\"Electrical issue\",\"description\":\"Power outlet not working in kitchen\",\"priority\":\"URGENT\",\"propertyId\":\"{{propertyId}}\",\"unit\":\"102\",\"imageUrls\":[\"https://example.com/image1.jpg\"]}"
+            }
           }
         },
         {
@@ -191,7 +236,10 @@
             "method": "POST",
             "url": "{{baseUrl}}/properties/",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\"name\":\"Test Property\",\"address\":\"123 Test St\",\"type\":\"APARTMENT\"}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Test Property\",\"address\":\"123 Test St\",\"type\":\"APARTMENT\"}"
+            }
           }
         }
       ]
@@ -221,7 +269,10 @@
             "method": "PUT",
             "url": "{{baseUrl}}/users/users/{{tenantId}}",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\"name\":\"Updated Tenant Name\"}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Updated Tenant Name\"}"
+            }
           }
         },
         {
@@ -230,7 +281,10 @@
             "method": "POST",
             "url": "{{baseUrl}}/properties/",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\"name\":\"Sunset Apartments\",\"address\":\"123 Sunset Blvd, Los Angeles, CA 90028\",\"type\":\"APARTMENT\",\"totalUnits\":20}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Sunset Apartments\",\"address\":\"123 Sunset Blvd, Los Angeles, CA 90028\",\"type\":\"APARTMENT\",\"totalUnits\":20}"
+            }
           }
         },
         {
@@ -255,7 +309,10 @@
             "method": "POST",
             "url": "{{baseUrl}}/properties/{{propertyId}}/assign-manager",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\"managerId\":\"{{managerId}}\"}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\"managerId\":\"{{managerId}}\"}"
+            }
           }
         }
       ]
@@ -269,7 +326,10 @@
             "method": "POST",
             "url": "{{baseUrl}}/properties/{{propertyId}}/assign-manager",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\"managerId\":\"{{managerId}}\"}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\"managerId\":\"{{managerId}}\"}"
+            }
           }
         }
       ]
@@ -304,7 +364,10 @@
             "method": "POST",
             "url": "{{baseUrl}}/users/auth/login",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\"email\":\"wrong@test.com\",\"password\":\"wrongpass\"}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"wrong@test.com\",\"password\":\"wrongpass\"}"
+            }
           }
         },
         {
@@ -313,7 +376,10 @@
             "method": "POST",
             "url": "{{baseUrl}}/users/auth/register",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\"name\":\"Duplicate\",\"email\":\"{{tenantEmail}}\",\"password\":\"{{password}}\",\"phone\":\"9999999999\",\"role\":\"TENANT\"}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Duplicate\",\"email\":\"{{tenantEmail}}\",\"password\":\"{{password}}\",\"phone\":\"9999999999\",\"role\":\"TENANT\"}"
+            }
           }
         },
         {
@@ -330,7 +396,10 @@
             "method": "POST",
             "url": "{{baseUrl}}/tickets/",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\"title\":\"Test\",\"description\":\"Test description\"}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\":\"Test\",\"description\":\"Test description\"}"
+            }
           }
         },
         {
@@ -338,14 +407,25 @@
           "request": {
             "method": "POST",
             "url": "{{baseUrl}}/tickets/",
-            "header": [{ "key": "Content-Type", "value": "multipart/form-data" }],
+            "header": [
+              { "key": "Content-Type", "value": "multipart/form-data" }
+            ],
             "body": {
               "mode": "formdata",
               "formdata": [
                 { "key": "title", "value": "Test", "type": "text" },
                 { "key": "description", "value": "Test", "type": "text" },
-                { "key": "propertyId", "value": "{{propertyId}}", "type": "text" },
-                { "key": "images", "value": "test.txt", "type": "file", "src": [] }
+                {
+                  "key": "propertyId",
+                  "value": "{{propertyId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "images",
+                  "value": "test.txt",
+                  "type": "file",
+                  "src": []
+                }
               ]
             }
           }

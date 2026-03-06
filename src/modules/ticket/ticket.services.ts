@@ -1,36 +1,50 @@
-import { uploadToCloudinary } from "#utils/cloudinary.ts";
-import { AppError } from "#utils/ErrorUtil.ts";
-import logger from "#utils/logger.ts";
-import type { TicketCreateInput } from "#validations/ticket.validations.ts";
+import { uploadToCloudinary } from '#utils/cloudinary.ts';
+import { AppError } from '#utils/error.ts';
+import logger from '#utils/logger.ts';
+import type {
+  TicketAssignInput,
+  TicketCreateInput,
+  TicketUpdateInput,
+} from '#validations/ticket.validations.ts';
 import {
-    createActivityLog,
-    createTicket,
-    createTicketImage,
-    findTicketsByTenantId,
-    findUnitByPropertyAndNumber,
-} from "./ticket.repositories.ts";
+  createActivityLog,
+  createTicket,
+  createTicketImage,
+  findActivityLogsByTicketId,
+  findAllTicketsForManager,
+  findTicketById,
+  findTicketImagesByTicketId,
+  findTicketsByTechnicianId,
+  findTicketsByTenantId,
+  findUnitByPropertyAndNumber,
+  findUnitById,
+  updateTicket,
+  type ListTicketsFilters,
+} from './ticket.repositories.ts';
+import { findPropertyById } from '../property/property.repositories.ts';
+import { findUserById } from '../user/user.repositories.ts';
 
 export const createTicketService = async (
   userId: string,
   tenantId: string,
   data: TicketCreateInput,
-  files?: Express.Multer.File[]
+  files?: Express.Multer.File[],
 ) => {
   try {
     if (!data.unit) {
-      throw new AppError("Unit is required", 400);
+      throw new AppError('Unit is required', 400);
     }
 
     const unit = await findUnitByPropertyAndNumber(data.propertyId, data.unit);
     if (!unit) {
-      throw new AppError("Unit not found for this property", 404);
+      throw new AppError('Unit not found for this property', 404);
     }
 
-    let priority: "LOW" | "MEDIUM" | "HIGH";
+    let priority: 'LOW' | 'MEDIUM' | 'HIGH';
     if (!data.priority) {
-      priority = "MEDIUM";
-    } else if (data.priority === "URGENT") {
-      priority = "HIGH";
+      priority = 'MEDIUM';
+    } else if (data.priority === 'URGENT') {
+      priority = 'HIGH';
     } else {
       priority = data.priority;
     }
@@ -39,16 +53,16 @@ export const createTicketService = async (
     let cloudinaryImageUrls: string[] = [];
 
     if (files && files.length > 0) {
-        cloudinaryImageUrls = await Promise.all(
-          files.map(async (file: Express.Multer.File) => {
-            const fileSource = file.path || file.buffer;
-            const url = await uploadToCloudinary(fileSource);
-            return url;
-          })
-        );
-      }
+      cloudinaryImageUrls = await Promise.all(
+        files.map(async (file: Express.Multer.File) => {
+          const fileSource = file.path || file.buffer;
+          const url = await uploadToCloudinary(fileSource);
+          return url;
+        }),
+      );
+    }
 
-      const allImageUrls = [...bodyImageUrls, ...cloudinaryImageUrls];
+    const allImageUrls = [...bodyImageUrls, ...cloudinaryImageUrls];
 
     const ticket = await createTicket({
       title: data.title,
@@ -58,36 +72,270 @@ export const createTicketService = async (
       unitId: unit.id,
     });
 
-    if (data.imageUrls && data.imageUrls.length > 0) {
+    if (ticket?.id && allImageUrls.length > 0) {
       await Promise.all(
-        data.imageUrls.map((url) => createTicketImage(ticket?.id ?? "", url))
+        allImageUrls.map((url) => createTicketImage(ticket.id, url)),
       );
     }
 
-        await createActivityLog({
-      ticketId: ticket?.id ?? "",
+    await createActivityLog({
+      ticketId: ticket?.id ?? '',
       performedBy: tenantId,
-      actionType: "CREATED",
-        oldValue: null,
-        newValue: `Ticket created with status OPEN and priority ${priority}`,
-      });
+      actionType: 'CREATED',
+      oldValue: null,
+      newValue: `Ticket created with status OPEN and priority ${priority}`,
+    });
 
     logger.info(`Ticket created id=${ticket?.id} by tenantId=${tenantId}`);
     return ticket;
-  } catch (error: any) {
-    logger.error(`createTicketService error: ${error.message || error}`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(`createTicketService error: ${message}`);
     throw error;
   }
 };
-
 
 export const getMyTicketsService = async (tenantId: string) => {
   try {
     const tickets = await findTicketsByTenantId(tenantId);
     logger.info(`Fetched ${tickets.length} tickets for tenantId=${tenantId}`);
     return tickets;
-  } catch (error: any) {
-    logger.error(`getMyTicketsService error: ${error.message || error}`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(`getMyTicketsService error: ${message}`);
     throw error;
   }
+};
+
+export const getAllTicketsService = async (
+  managerId: string,
+  filters?: ListTicketsFilters,
+) => {
+  try {
+    const results = await findAllTicketsForManager(managerId, filters);
+    logger.info(
+      `Fetched ${results.length} tickets for managerId=${managerId} with filters`,
+      { filters },
+    );
+    return results;
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(`getAllTicketsService error: ${message}`);
+    throw error;
+  }
+};
+
+type UserForAccess = { userId: string; role: string };
+
+export const getTicketByIdService = async (
+  ticketId: string,
+  user: UserForAccess,
+) => {
+  const ticket = await findTicketById(ticketId);
+  if (!ticket) {
+    throw new AppError('Ticket not found', 404);
+  }
+
+  if (user.role === 'TENANT') {
+    if (ticket.tenantId !== user.userId) {
+      throw new AppError('You do not have access to this ticket', 403);
+    }
+  } else if (user.role === 'TECHNICIAN') {
+    if (ticket.technicianId !== user.userId) {
+      throw new AppError('You do not have access to this ticket', 403);
+    }
+  } else if (user.role === 'MANAGER') {
+    const unit = await findUnitById(ticket.unitId);
+    if (!unit) {
+      throw new AppError('Ticket unit not found', 404);
+    }
+    const property = await findPropertyById(unit.propertyId);
+    if (!property || property.managerId !== user.userId) {
+      throw new AppError('You do not have access to this ticket', 403);
+    }
+  }
+
+  const [images, activity] = await Promise.all([
+    findTicketImagesByTicketId(ticketId),
+    findActivityLogsByTicketId(ticketId),
+  ]);
+
+  if (user.role === 'ADMIN') {
+    return { ticket, images, activity };
+  } else {
+    throw new AppError('You do not have access to this ticket', 403);
+  }
+
+  return { ticket, images, activity };
+};
+
+/**
+ * Assigns a technician to a ticket. Manager must have access to the ticket's property.
+ * Sets status to ASSIGNED and creates ASSIGNED activity log.
+ */
+export const assignTicketService = async (
+  ticketId: string,
+  managerId: string,
+  data: TicketAssignInput,
+) => {
+  const ticket = await findTicketById(ticketId);
+  if (!ticket) {
+    throw new AppError('Ticket not found', 404);
+  }
+
+  // Verify manager has access (same logic as getTicketByIdService)
+  const unit = await findUnitById(ticket.unitId);
+  if (!unit) {
+    throw new AppError('Ticket unit not found', 404);
+  }
+  const property = await findPropertyById(unit.propertyId);
+  if (!property || property.managerId !== managerId) {
+    throw new AppError('You do not have access to this ticket', 403);
+  }
+
+  const technician = await findUserById(data.technicianId);
+  if (!technician) {
+    throw new AppError('Technician not found', 404);
+  }
+  if (technician.role !== 'TECHNICIAN') {
+    throw new AppError('User is not a technician', 400);
+  }
+
+  const previousTechnicianId = ticket.technicianId;
+  const previousStatus = ticket.status;
+
+  const updated = await updateTicket(ticketId, {
+    technicianId: data.technicianId,
+    status: 'ASSIGNED',
+  });
+
+  if (!updated) {
+    throw new AppError('Failed to assign ticket', 500);
+  }
+
+  await createActivityLog({
+    ticketId,
+    performedBy: managerId,
+    actionType: 'ASSIGNED',
+    oldValue: `Technician: ${previousTechnicianId ?? 'Unassigned'}; Status: ${
+      previousStatus ?? 'OPEN'
+    }`,
+    newValue: `Technician: ${technician.name}; Status: ASSIGNED`,
+  });
+
+  logger.info(
+    `Ticket ${ticketId} assigned to technician ${data.technicianId} by manager ${managerId}`,
+  );
+  return updated;
+};
+
+/**
+ * Updates ticket priority and/or status. Manager must have access to the ticket's property.
+ * Creates STATUS_CHANGED activity log for each change.
+ */
+export const updateTicketService = async (
+  ticketId: string,
+  managerId: string,
+  data: TicketUpdateInput,
+) => {
+  const ticket = await findTicketById(ticketId);
+  if (!ticket) {
+    throw new AppError('Ticket not found', 404);
+  }
+
+  // Verify manager has access
+  const unit = await findUnitById(ticket.unitId);
+  if (!unit) {
+    throw new AppError('Ticket unit not found', 404);
+  }
+  const property = await findPropertyById(unit.propertyId);
+  if (!property || property.managerId !== managerId) {
+    throw new AppError('You do not have access to this ticket', 403);
+  }
+
+  const updates: Parameters<typeof updateTicket>[1] = {};
+  const activityMessages: string[] = [];
+
+  if (data.priority !== undefined && data.priority !== ticket.priority) {
+    updates.priority = data.priority;
+    activityMessages.push(
+      `Priority changed from ${ticket.priority} to ${data.priority}`,
+    );
+  }
+  if (data.status !== undefined && data.status !== ticket.status) {
+    updates.status = data.status;
+    activityMessages.push(
+      `Status changed from ${ticket.status} to ${data.status}`,
+    );
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return ticket; // No changes
+  }
+
+  const updated = await updateTicket(ticketId, updates);
+  if (!updated) {
+    throw new AppError('Failed to update ticket', 500);
+  }
+
+  await createActivityLog({
+    ticketId,
+    performedBy: managerId,
+    actionType: 'STATUS_CHANGED',
+    oldValue: `Priority: ${ticket.priority}, Status: ${ticket.status}`,
+    newValue: activityMessages.join('; '),
+  });
+
+  logger.info(`Ticket ${ticketId} updated by manager ${managerId}`, {
+    updates,
+  });
+  return updated;
+};
+
+export const getAssignedTicketsService = async (technicianId: string) => {
+  const tickets = await findTicketsByTechnicianId(technicianId);
+  logger.info(
+    `Fetched ${tickets.length} assigned tickets for technicianId=${technicianId}`,
+  );
+  return tickets;
+};
+
+export const updateTicketProgressService = async (
+  ticketId: string,
+  technicianId: string,
+  data: { status: 'IN_PROGRESS' | 'DONE' },
+) => {
+  const ticket = await findTicketById(ticketId);
+  if (!ticket) {
+    throw new AppError('Ticket not found', 404);
+  }
+  if (ticket.technicianId !== technicianId) {
+    throw new AppError('You do not have access to this ticket', 403);
+  }
+  const allowed: Record<string, string[]> = {
+    ASSIGNED: ['IN_PROGRESS'],
+    IN_PROGRESS: ['DONE'],
+  };
+  const next = allowed[ticket.status ?? 'OPEN'];
+  if (!next || !next.includes(data.status)) {
+    throw new AppError(
+      `Cannot set status to ${data.status} from ${ticket.status}. Allowed: ${next?.join(', ') ?? 'none'}`,
+      400,
+    );
+  }
+  const updated = await updateTicket(ticketId, { status: data.status });
+  if (!updated) {
+    throw new AppError('Failed to update ticket', 500);
+  }
+  await createActivityLog({
+    ticketId,
+    performedBy: technicianId,
+    actionType: 'STATUS_CHANGED',
+    oldValue: ticket.status,
+    newValue: data.status,
+  });
+  logger.info(
+    `Ticket ${ticketId} progress updated to ${data.status} by technician ${technicianId}`,
+  );
+  return updated;
 };

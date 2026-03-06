@@ -1,26 +1,74 @@
-import { Router } from "express";
+import { Router } from 'express';
+import { uploadTicketImages } from '#utils/upload.ts';
 import {
-  isAuthenticated,
-  authorizeRoles,
-} from "../user/user.middlewares.ts";
-import { createTicketController, getMyTicketsController } from "./ticket.controllers.ts";
-import { uploadTicketImages } from "#utils/upload.ts";
+  createTicketController,
+  getAllTicketsController,
+  getMyTicketsController,
+  getTicketByIdController,
+  assignTicketController,
+  updateTicketController,
+  updateTicketProgressController,
+  getAssignedTicketsController,
+} from './ticket.controllers.ts';
+import { isAuthenticated, authorizeRoles } from '../user/user.middlewares.ts';
 
-const ticketRouter = Router();
+const ticketRouter: Router = Router();
 
 ticketRouter.post(
-  "/",
+  '/',
   isAuthenticated,
-  authorizeRoles("TENANT"),
+  authorizeRoles('TENANT'),
   uploadTicketImages,
-  createTicketController
+  createTicketController,
 );
 
 ticketRouter.get(
-  "/my",
+  '/my',
   isAuthenticated,
-  authorizeRoles("TENANT"),
-  getMyTicketsController
+  authorizeRoles('TENANT'),
+  getMyTicketsController,
+);
+
+ticketRouter.get(
+  '/assigned',
+  isAuthenticated,
+  authorizeRoles('TECHNICIAN'),
+  getAssignedTicketsController,
+);
+
+ticketRouter.get(
+  '/',
+  isAuthenticated,
+  authorizeRoles('MANAGER'),
+  getAllTicketsController,
+);
+
+ticketRouter.get(
+  '/:id',
+  isAuthenticated,
+  authorizeRoles('MANAGER', 'TENANT', 'TECHNICIAN'),
+  getTicketByIdController,
+);
+
+ticketRouter.patch(
+  '/:id/assign',
+  isAuthenticated,
+  authorizeRoles('MANAGER'),
+  assignTicketController,
+);
+ticketRouter.patch(
+  '/:id',
+  isAuthenticated,
+  authorizeRoles('MANAGER'),
+  updateTicketController,
+);
+
+
+ticketRouter.patch(
+  '/:id/progress',
+  isAuthenticated,
+  authorizeRoles('TECHNICIAN'),
+  updateTicketProgressController,
 );
 
 export default ticketRouter;

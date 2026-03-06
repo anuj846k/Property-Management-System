@@ -1,6 +1,8 @@
+import type { Request, Response } from 'express';
+import { AppError } from '#utils/error.ts';
 import logger from '#utils/logger.ts';
-import { ALLOWED_USER_ROLES, type UserRole } from './user.types.ts';
 import * as userService from './user.services.ts';
+import { ALLOWED_USER_ROLES, type UserRole } from './user.types.ts';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -10,12 +12,10 @@ const COOKIE_OPTIONS = {
   sameSite: 'strict' as const,
 };
 
-const ACCESS_COOKIE_MAX_AGE =
-  15 * 60 * 1000;
-const REFRESH_COOKIE_MAX_AGE =
-  7 * 24 * 60 * 60 * 1000;
+const ACCESS_COOKIE_MAX_AGE = 15 * 60 * 1000;
+const REFRESH_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
-const setCookies = (res: any, accessToken: string, refreshToken: string) => {
+const setCookies = (res: Response, accessToken: string, refreshToken: string) => {
   res.cookie('access_token', accessToken, {
     ...COOKIE_OPTIONS,
     maxAge: ACCESS_COOKIE_MAX_AGE,
@@ -26,7 +26,7 @@ const setCookies = (res: any, accessToken: string, refreshToken: string) => {
   });
 };
 
-export const RegisterUser = async (req: any, res: any) => {
+export const RegisterUser = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
     logger.info(`Register request for email: ${email}`);
@@ -38,15 +38,17 @@ export const RegisterUser = async (req: any, res: any) => {
 
     logger.info(`User registered successfully: ${email}`);
     res.status(201).json({ message: 'User registered successfully' });
-  } catch (error: any) {
-    logger.error(`Register failed: ${error.message || error}`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    const statusCode = error instanceof AppError ? error.statusCode : 500;
+    logger.error(`Register failed: ${message}`);
     res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || 'Internal Server Error' });
+      .status(statusCode)
+      .json({ message: message || 'Internal Server Error' });
   }
 };
 
-export const LoginUser = async (req: any, res: any) => {
+export const LoginUser = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
     logger.info(`Login attempt for email: ${email}`);
@@ -59,28 +61,35 @@ export const LoginUser = async (req: any, res: any) => {
 
     logger.info(`User logged in successfully: ${email}`);
     res.status(200).json({ message: 'Login successful' });
-  } catch (error: any) {
-    logger.error(`Login failed: ${error.message || error}`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    const statusCode = error instanceof AppError ? error.statusCode : 500;
+    logger.error(`Login failed: ${message}`);
     res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || 'Internal Server Error' });
+      .status(statusCode)
+      .json({ message: message || 'Internal Server Error' });
   }
 };
 
-export const GetCurrentUser = async (req: any, res: any) => {
+export const GetCurrentUser = async (req: Request, res: Response) => {
   try {
+    if (!req.user?.userId) {
+      throw new AppError('Unauthorized', 401);
+    }
     const user = await userService.GetCurrentUser(req.user.userId);
     logger.info(`Fetched current user: ${user.email}`);
     res.status(200).json({ user });
-  } catch (error: any) {
-    logger.error(`GetCurrentUser failed: ${error.message || error}`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    const statusCode = error instanceof AppError ? error.statusCode : 500;
+    logger.error(`GetCurrentUser failed: ${message}`);
     res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || 'Internal Server Error' });
+      .status(statusCode)
+      .json({ message: message || 'Internal Server Error' });
   }
 };
 
-export const GetUsers = async (req: any, res: any) => {
+export const GetUsers = async (req: Request, res: Response) => {
   try {
     const { role } = req.query;
 
@@ -95,30 +104,34 @@ export const GetUsers = async (req: any, res: any) => {
 
     const users = await userService.ListUsers(roleFilter);
     res.status(200).json({ users });
-  } catch (error: any) {
-    logger.error(`GetUsers failed: ${error.message || error}`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    const statusCode = error instanceof AppError ? error.statusCode : 500;
+    logger.error(`GetUsers failed: ${message}`);
     res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || 'Internal Server Error' });
+      .status(statusCode)
+      .json({ message: message || 'Internal Server Error' });
   }
 };
 
-export const GetUserById = async (req: any, res: any) => {
+export const GetUserById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     logger.info(`Manager fetching user by id: ${id}`);
 
     const user = await userService.GetUserByIdForManager(id);
     res.status(200).json({ user });
-  } catch (error: any) {
-    logger.error(`GetUserById failed: ${error.message || error}`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    const statusCode = error instanceof AppError ? error.statusCode : 500;
+    logger.error(`GetUserById failed: ${message}`);
     res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || 'Internal Server Error' });
+      .status(statusCode)
+      .json({ message: message || 'Internal Server Error' });
   }
 };
 
-export const UpdateUserById = async (req: any, res: any) => {
+export const UpdateUserById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     logger.info(
@@ -130,15 +143,17 @@ export const UpdateUserById = async (req: any, res: any) => {
       req.body,
     );
     res.status(200).json({ user: updatedUser });
-  } catch (error: any) {
-    logger.error(`UpdateUserById failed: ${error.message || error}`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    const statusCode = error instanceof AppError ? error.statusCode : 500;
+    logger.error(`UpdateUserById failed: ${message}`);
     res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || 'Internal Server Error' });
+      .status(statusCode)
+      .json({ message: message || 'Internal Server Error' });
   }
 };
 
-export const RefreshToken = async (req: any, res: any) => {
+export const RefreshToken = async (req: Request, res: Response) => {
   try {
     const token = req.cookies.refresh_token;
     if (!token) {
@@ -149,15 +164,17 @@ export const RefreshToken = async (req: any, res: any) => {
     setCookies(res, accessToken, refreshToken);
 
     res.status(200).json({ message: 'Token refreshed successfully' });
-  } catch (error: any) {
-    logger.error(`RefreshToken failed: ${error.message || error}`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    const statusCode = error instanceof AppError ? error.statusCode : 401;
+    logger.error(`RefreshToken failed: ${message}`);
     res
-      .status(error.statusCode || 401)
-      .json({ message: error.message || 'Invalid refresh token' });
+      .status(statusCode)
+      .json({ message: message || 'Invalid refresh token' });
   }
 };
 
-export const LogoutUser = (_req: any, res: any) => {
+export const LogoutUser = (_req: Request, res: Response) => {
   res.clearCookie('access_token', COOKIE_OPTIONS);
   res.clearCookie('refresh_token', COOKIE_OPTIONS);
   res.status(200).json({ message: 'Logged out successfully' });

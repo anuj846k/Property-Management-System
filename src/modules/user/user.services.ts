@@ -1,8 +1,8 @@
-import { hashPassword, VerifyPassword } from '#utils/argon.ts';
-import { AppError } from '#utils/ErrorUtil.ts';
-import logger from '#utils/logger.ts';
 import jwt from 'jsonwebtoken';
 import type { StringValue } from 'ms';
+import { hashPassword, VerifyPassword } from '#utils/argon.ts';
+import { AppError } from '#utils/error.ts';
+import logger from '#utils/logger.ts';
 import { userSchema } from '#validations/user.validations.ts';
 import {
   findExistingUser,
@@ -11,7 +11,12 @@ import {
   registerUser,
   updateUserById,
 } from './user.repositories.ts';
-import type { PublicUser, TokenPayload, UpdateUserPayload, UserRole } from './user.types.ts';
+import type {
+  PublicUser,
+  TokenPayload,
+  UpdateUserPayload,
+  UserRole,
+} from './user.types.ts';
 
 const ACCESS_SECRET = process.env.ACCESS_SECRET!;
 const REFRESH_SECRET = process.env.REFRESH_SECRET!;
@@ -173,8 +178,9 @@ export const RefreshAccessToken = (refreshToken: string) => {
     );
 
     return { accessToken, refreshToken: newRefreshToken };
-  } catch (error: any) {
-    logger.error(`RefreshAccessToken error: ${error.message || error}`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(`RefreshAccessToken error: ${message}`);
     throw new AppError('Invalid or expired refresh token', 401);
   }
 };

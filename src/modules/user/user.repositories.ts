@@ -27,7 +27,9 @@ export const registerUser = async (data: UserData) => {
 };
 
 export const findExistingUser = async (email?: string, phone?: string) => {
-  if (!email && !phone) throw new Error('Email or phone must be provided');
+  if (!email && !phone) {
+    throw new Error('Email or phone must be provided');
+  }
 
   const user = await db
     .select()

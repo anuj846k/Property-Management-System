@@ -275,3 +275,41 @@
 {"level":"info","message":"Logger initialized with level: debug","service":"property-maintenance-api","timestamp":"2026-03-05T13:30:16.794Z"}
 {"level":"info","message":"API server is running on http://localhost:8000","service":"property-maintenance-api","timestamp":"2026-03-05T13:30:20.388Z"}
 {"level":"info","message":"Shutting down gracefully...","service":"property-maintenance-api","timestamp":"2026-03-05T13:30:29.885Z"}
+{"level":"info","message":"Logger initialized with level: info","service":"property-maintenance-api","timestamp":"2026-03-05T15:28:28.482Z"}
+{"level":"info","message":"Logger initialized with level: info","service":"property-maintenance-api","timestamp":"2026-03-05T15:29:03.061Z"}
+{"level":"info","message":"Logger initialized with level: info","service":"property-maintenance-api","timestamp":"2026-03-05T15:30:09.420Z"}
+{"level":"info","message":"Logger initialized with level: info","service":"property-maintenance-api","timestamp":"2026-03-05T15:30:15.407Z"}
+{"level":"info","message":"Logger initialized with level: info","service":"property-maintenance-api","timestamp":"2026-03-05T15:30:22.905Z"}
+{"level":"info","message":"Logger initialized with level: info","service":"property-maintenance-api","timestamp":"2026-03-05T15:30:28.119Z"}
+{"level":"info","message":"Logger initialized with level: info","service":"property-maintenance-api","timestamp":"2026-03-05T15:30:32.625Z"}
+{"level":"info","message":"Logger initialized with level: info","service":"property-maintenance-api","timestamp":"2026-03-05T15:30:38.421Z"}
+{"level":"info","message":"Logger initialized with level: info","service":"property-maintenance-api","timestamp":"2026-03-05T15:30:44.601Z"}
+{"level":"info","message":"Logger initialized with level: info","service":"property-maintenance-api","timestamp":"2026-03-05T15:30:48.198Z"}
+{"level":"info","message":"Logger initialized with level: info","service":"property-maintenance-api","timestamp":"2026-03-05T15:31:28.107Z"}
+{"level":"info","message":"Logger initialized with level: info","service":"property-maintenance-api","timestamp":"2026-03-06T03:31:09.769Z"}
+{"level":"info","message":"Logger initialized with level: debug","service":"property-maintenance-api","timestamp":"2026-03-06T03:35:32.916Z"}
+{"level":"info","message":"API server is running on http://localhost:8000","service":"property-maintenance-api","timestamp":"2026-03-06T03:35:36.420Z"}
+{"level":"info","message":"Register request for email: niteshkjaiswal@gmail.com","service":"property-maintenance-api","timestamp":"2026-03-06T03:37:24.851Z"}
+{"level":"info","message":"Register attempt with data: {\"name\":\"Nitesh Kumar\",\"email\":\"niteshkjaiswal@gmail.com\",\"password\":\"Nite@3110\",\"phone\":\"9811287674\",\"role\":\"ADMIN\"}","service":"property-maintenance-api","timestamp":"2026-03-06T03:37:24.852Z"}
+{"level":"info","message":"User registered successfully: niteshkjaiswal@gmail.com","service":"property-maintenance-api","timestamp":"2026-03-06T03:37:25.759Z"}
+{"level":"info","message":"User registered successfully: niteshkjaiswal@gmail.com","service":"property-maintenance-api","timestamp":"2026-03-06T03:37:25.763Z"}
+{"level":"info","message":"::1 - - [06/Mar/2026:03:37:25 +0000] \"POST /api/v1/users/auth/register HTTP/1.1\" 201 42 \"-\" \"PostmanRuntime/7.39.1\"","service":"property-maintenance-api","timestamp":"2026-03-06T03:37:25.771Z"}
+{"level":"info","message":"Register request for email: niteshkjaiswal@gmail.com","service":"property-maintenance-api","timestamp":"2026-03-06T03:37:35.426Z"}
+{"level":"info","message":"Register attempt with data: {\"email\":\"niteshkjaiswal@gmail.com\",\"password\":\"Nite@3110\"}","service":"property-maintenance-api","timestamp":"2026-03-06T03:37:35.427Z"}
+{"level":"warn","message":"Validation failed: Invalid input: expected string, received undefined, Invalid input: expected string, received undefined, Invalid option: expected one of \"TENANT\"|\"MANAGER\"|\"TECHNICIAN\"|\"ADMIN\"","service":"property-maintenance-api","timestamp":"2026-03-06T03:37:35.430Z"}
+{"level":"error","message":"Register failed: Invalid input: expected string, received undefined, Invalid input: expected string, received undefined, Invalid option: expected one of \"TENANT\"|\"MANAGER\"|\"TECHNICIAN\"|\"ADMIN\"","service":"property-maintenance-api","timestamp":"2026-03-06T03:37:35.432Z"}
+{"level":"info","message":"::1 - - [06/Mar/2026:03:37:35 +0000] \"POST /api/v1/users/auth/register HTTP/1.1\" 400 197 \"-\" \"PostmanRuntime/7.39.1\"","service":"property-maintenance-api","timestamp":"2026-03-06T03:37:35.434Z"}
+{"level":"info","message":"Login attempt for email: niteshkjaiswal@gmail.com","service":"property-maintenance-api","timestamp":"2026-03-06T03:37:46.040Z"}
+{"level":"info","message":"Login attempt for email: niteshkjaiswal@gmail.com","service":"property-maintenance-api","timestamp":"2026-03-06T03:37:46.041Z"}
+{"level":"info","message":"User logged in successfully: niteshkjaiswal@gmail.com","service":"property-maintenance-api","timestamp":"2026-03-06T03:37:46.566Z"}
+{"level":"info","message":"User logged in successfully: niteshkjaiswal@gmail.com","service":"property-maintenance-api","timestamp":"2026-03-06T03:37:46.567Z"}
+{"level":"info","message":"::1 - - [06/Mar/2026:03:37:46 +0000] \"POST /api/v1/users/auth/login HTTP/1.1\" 200 30 \"-\" \"PostmanRuntime/7.39.1\"","service":"property-maintenance-api","timestamp":"2026-03-06T03:37:46.568Z"}
+{"level":"info","message":"Logger initialized with level: debug","service":"property-maintenance-api","timestamp":"2026-03-06T03:40:06.711Z"}
+{"level":"info","message":"API server is running on http://localhost:8000","service":"property-maintenance-api","timestamp":"2026-03-06T03:40:09.139Z"}
+{"level":"info","message":"Shutting down gracefully...","service":"property-maintenance-api","timestamp":"2026-03-06T03:41:26.873Z"}
+{"level":"info","message":"Logger initialized with level: debug","service":"property-maintenance-api","timestamp":"2026-03-06T04:55:40.892Z"}
+{"level":"info","message":"API server is running on http://localhost:8000","service":"property-maintenance-api","timestamp":"2026-03-06T04:55:43.667Z"}
+{"level":"info","message":"Shutting down gracefully...","service":"property-maintenance-api","timestamp":"2026-03-06T04:55:51.114Z"}
+{"level":"info","message":"Logger initialized with level: debug","service":"property-maintenance-api","timestamp":"2026-03-06T12:53:31.395Z"}
+{"level":"info","message":"API server is running on http://localhost:8000","service":"property-maintenance-api","timestamp":"2026-03-06T12:53:34.233Z"}
+{"level":"info","message":"Shutting down gracefully...","service":"property-maintenance-api","timestamp":"2026-03-06T12:54:08.166Z"}
