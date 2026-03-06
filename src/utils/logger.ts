@@ -3,13 +3,13 @@ import winston from 'winston';
 const logFormat = winston.format.combine(
   winston.format.timestamp(),
   winston.format.errors({ stack: true }),
-  winston.format.json()
+  winston.format.json(),
 );
 
 const consoleFormat = winston.format.combine(
   winston.format.colorize(),
   winston.format.timestamp(),
-  winston.format.simple()
+  winston.format.simple(),
 );
 
 const getLogLevel = (): string => {
@@ -30,7 +30,7 @@ if (process.env.NODE_ENV !== 'production') {
   logger.add(
     new winston.transports.Console({
       format: consoleFormat,
-    })
+    }),
   );
 }
 

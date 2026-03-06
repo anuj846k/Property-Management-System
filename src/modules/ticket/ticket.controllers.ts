@@ -1,11 +1,16 @@
-import { AppError } from "#utils/ErrorUtil.ts";
-import logger from "#utils/logger.ts";
-import type { Request, Response } from "express";
+import type { Request, Response } from 'express';
+import { AppError } from '#utils/ErrorUtil.ts';
+import logger from '#utils/logger.ts';
 import {
   ticketCreateSchema,
   ticketListQuerySchema,
   ticketProgressSchema,
-} from "#validations/ticket.validations.ts";
+} from '#validations/ticket.validations.ts';
+import {
+  ticketAssignSchema,
+  ticketUpdateSchema,
+} from '#validations/ticket.validations.ts';
+import type { ListTicketsFilters } from './ticket.repositories.ts';
 import {
   createTicketService,
   getAllTicketsService,
@@ -13,67 +18,71 @@ import {
   getMyTicketsService,
   getTicketByIdService,
   updateTicketProgressService,
-} from "./ticket.services.ts";
-import type { ListTicketsFilters } from "./ticket.repositories.ts";
+} from './ticket.services.ts';
 
 export const createTicketController = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
     const files = (req as any).files as Express.Multer.File[] | undefined;
     if (!user || !user.userId) {
-      throw new AppError("Unauthorized", 401);
+      throw new AppError('Unauthorized', 401);
     }
 
     const parseResult = ticketCreateSchema.safeParse(req.body);
     if (!parseResult.success) {
       const messages = parseResult.error.issues
         .map((i) => i.message)
-        .join(", ");
+        .join(', ');
       throw new AppError(messages, 400);
     }
 
     const data = parseResult.data;
 
     logger.info(
-      `CreateTicket request by userId=${user.userId} title=${data.title}`
+      `CreateTicket request by userId=${user.userId} title=${data.title}`,
     );
 
-    const ticket = await createTicketService(user.userId, user.userId, data, files);
+    const ticket = await createTicketService(
+      user.userId,
+      user.userId,
+      data,
+      files,
+    );
 
     res.status(201).json({ ticket });
   } catch (error: any) {
     logger.error(`createTicketController error: ${error.message || error}`);
     res
       .status(error.statusCode || 500)
-      .json({ message: error.message || "Internal Server Error" });
+      .json({ message: error.message || 'Internal Server Error' });
   }
 };
 
 export const getMyTicketsController = async (req: Request, res: Response) => {
-    try {
-      const user = (req as any).user;
-      if (!user || !user.userId) {
-        throw new AppError("Unauthorized", 401);
-      }
-  
-      logger.info(`getMyTickets request by userId=${user.userId}`);
-  
-      const tickets = await getMyTicketsService(user.userId);
-  
-      res.status(200).json({ tickets });
-    } catch (error: any) {
-      logger.error(`getMyTicketsController error: ${error.message || error}`);
-      res
-        .status(error.statusCode || 500)
-        .json({ message: error.message || "Internal Server Error" });
+  try {
+    const user = (req as any).user;
+    if (!user || !user.userId) {
+      throw new AppError('Unauthorized', 401);
     }
-  };
+
+    logger.info(`getMyTickets request by userId=${user.userId}`);
+
+    const tickets = await getMyTicketsService(user.userId);
+
+    res.status(200).json({ tickets });
+  } catch (error: any) {
+    logger.error(`getMyTicketsController error: ${error.message || error}`);
+    res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || 'Internal Server Error' });
+  }
+};
 
 export const getAllTicketsController = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
     if (!user || !user.userId) {
-      throw new AppError("Unauthorized", 401);
+      throw new AppError('Unauthorized', 401);
     }
 
     const parseResult = ticketListQuerySchema.safeParse(req.query);
@@ -83,13 +92,16 @@ export const getAllTicketsController = async (req: Request, res: Response) => {
       filters,
     });
 
-    const results = await getAllTicketsService(user.userId, filters as ListTicketsFilters);
+    const results = await getAllTicketsService(
+      user.userId,
+      filters as ListTicketsFilters,
+    );
     res.status(200).json({ tickets: results });
   } catch (error: any) {
     logger.error(`getAllTicketsController error: ${error.message || error}`);
     res
       .status(error.statusCode || 500)
-      .json({ message: error.message || "Internal Server Error" });
+      .json({ message: error.message || 'Internal Server Error' });
   }
 };
 
@@ -97,15 +109,17 @@ export const getTicketByIdController = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
     if (!user || !user.userId) {
-      throw new AppError("Unauthorized", 401);
+      throw new AppError('Unauthorized', 401);
     }
 
     const ticketId = req.params.id;
     if (!ticketId) {
-      throw new AppError("Ticket ID is required", 400);
+      throw new AppError('Ticket ID is required', 400);
     }
 
-    logger.info(`getTicketById request ticketId=${ticketId} by userId=${user.userId}`);
+    logger.info(
+      `getTicketById request ticketId=${ticketId} by userId=${user.userId}`,
+    );
 
     const result = await getTicketByIdService(ticketId as string, {
       userId: user.userId,
@@ -116,51 +130,48 @@ export const getTicketByIdController = async (req: Request, res: Response) => {
     logger.error(`getTicketByIdController error: ${error.message || error}`);
     res
       .status(error.statusCode || 500)
-      .json({ message: error.message || "Internal Server Error" });
+      .json({ message: error.message || 'Internal Server Error' });
   }
 };
 
 // Add imports
-import {
-  ticketAssignSchema,
-  ticketUpdateSchema,
-} from "#validations/ticket.validations.ts";
-import {
-  assignTicketService,
-  updateTicketService,
-} from "./ticket.services.ts";
+import { assignTicketService, updateTicketService } from './ticket.services.ts';
 
 export const assignTicketController = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
     if (!user || !user.userId) {
-      throw new AppError("Unauthorized", 401);
+      throw new AppError('Unauthorized', 401);
     }
 
     const ticketId = req.params.id;
     if (!ticketId) {
-      throw new AppError("Ticket ID is required", 400);
+      throw new AppError('Ticket ID is required', 400);
     }
 
     const parseResult = ticketAssignSchema.safeParse(req.body);
     if (!parseResult.success) {
       const messages = parseResult.error.issues
         .map((i) => i.message)
-        .join(", ");
+        .join(', ');
       throw new AppError(messages, 400);
     }
 
     logger.info(
-      `assignTicket request ticketId=${ticketId} technicianId=${parseResult.data.technicianId} by managerId=${user.userId}`
+      `assignTicket request ticketId=${ticketId} technicianId=${parseResult.data.technicianId} by managerId=${user.userId}`,
     );
 
-    const ticket = await assignTicketService(ticketId as string, user.userId, parseResult.data);
+    const ticket = await assignTicketService(
+      ticketId as string,
+      user.userId,
+      parseResult.data,
+    );
     res.status(200).json({ ticket });
   } catch (error: any) {
     logger.error(`assignTicketController error: ${error.message || error}`);
     res
       .status(error.statusCode || 500)
-      .json({ message: error.message || "Internal Server Error" });
+      .json({ message: error.message || 'Internal Server Error' });
   }
 };
 
@@ -168,68 +179,94 @@ export const updateTicketController = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
     if (!user || !user.userId) {
-      throw new AppError("Unauthorized", 401);
+      throw new AppError('Unauthorized', 401);
     }
 
     const ticketId = req.params.id;
     if (!ticketId) {
-      throw new AppError("Ticket ID is required", 400);
+      throw new AppError('Ticket ID is required', 400);
     }
 
     const parseResult = ticketUpdateSchema.safeParse(req.body);
     if (!parseResult.success) {
       const messages = parseResult.error.issues
         .map((i) => i.message)
-        .join(", ");
+        .join(', ');
       throw new AppError(messages, 400);
     }
 
     logger.info(
       `updateTicket request ticketId=${ticketId} by managerId=${user.userId}`,
-      { data: parseResult.data }
+      { data: parseResult.data },
     );
 
-    const ticket = await updateTicketService(ticketId as string, user.userId, parseResult.data);
+    const ticket = await updateTicketService(
+      ticketId as string,
+      user.userId,
+      parseResult.data,
+    );
     res.status(200).json({ ticket });
   } catch (error: any) {
     logger.error(`updateTicketController error: ${error.message || error}`);
     res
       .status(error.statusCode || 500)
-      .json({ message: error.message || "Internal Server Error" });
+      .json({ message: error.message || 'Internal Server Error' });
   }
 };
 
-export const getAssignedTicketsController = async (req: Request, res: Response) => {
+export const getAssignedTicketsController = async (
+  req: Request,
+  res: Response,
+) => {
   try {
     const user = (req as any).user;
-    if (!user?.userId) throw new AppError("Unauthorized", 401);
+    if (!user?.userId) {
+      throw new AppError('Unauthorized', 401);
+    }
     const tickets = await getAssignedTicketsService(user.userId);
     res.status(200).json({ tickets });
   } catch (error: any) {
-    logger.error(`getAssignedTicketsController error: ${error.message || error}`);
+    logger.error(
+      `getAssignedTicketsController error: ${error.message || error}`,
+    );
     res
       .status(error.statusCode || 500)
-      .json({ message: error.message || "Internal Server Error" });
+      .json({ message: error.message || 'Internal Server Error' });
   }
 };
 
-export const updateTicketProgressController = async (req: Request, res: Response) => {
+export const updateTicketProgressController = async (
+  req: Request,
+  res: Response,
+) => {
   try {
     const user = (req as any).user;
-    if (!user?.userId) throw new AppError("Unauthorized", 401);
+    if (!user?.userId) {
+      throw new AppError('Unauthorized', 401);
+    }
     const ticketId = req.params.id;
-    if (!ticketId) throw new AppError("Ticket ID is required", 400);
+    if (!ticketId) {
+      throw new AppError('Ticket ID is required', 400);
+    }
     const parseResult = ticketProgressSchema.safeParse(req.body);
     if (!parseResult.success) {
-      const messages = parseResult.error.issues.map((i) => i.message).join(", ");
+      const messages = parseResult.error.issues
+        .map((i) => i.message)
+        .join(', ');
       throw new AppError(messages, 400);
     }
-    const ticket = await updateTicketProgressService(ticketId as string, user.userId, parseResult.data);
+    const ticket = await updateTicketProgressService(
+      ticketId as string,
+      user.userId,
+      parseResult.data,
+    );
     res.status(200).json({ ticket });
   } catch (error: any) {
-    logger.error(`updateTicketProgressController error: ${error.message || error}`);
+    logger.error(
+      `updateTicketProgressController error: ${error.message || error}`,
+    );
     res
       .status(error.statusCode || 500)
-      .json({ message: error.message || "Internal Server Error" });
+      .json({ message: error.message || 'Internal Server Error' });
   }
-};  
+};

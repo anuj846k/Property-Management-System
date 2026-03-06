@@ -1,8 +1,8 @@
+import jwt from 'jsonwebtoken';
+import type { StringValue } from 'ms';
 import { hashPassword, VerifyPassword } from '#utils/argon.ts';
 import { AppError } from '#utils/ErrorUtil.ts';
 import logger from '#utils/logger.ts';
-import jwt from 'jsonwebtoken';
-import type { StringValue } from 'ms';
 import { userSchema } from '#validations/user.validations.ts';
 import {
   findExistingUser,
@@ -11,7 +11,12 @@ import {
   registerUser,
   updateUserById,
 } from './user.repositories.ts';
-import type { PublicUser, TokenPayload, UpdateUserPayload, UserRole } from './user.types.ts';
+import type {
+  PublicUser,
+  TokenPayload,
+  UpdateUserPayload,
+  UserRole,
+} from './user.types.ts';
 
 const ACCESS_SECRET = process.env.ACCESS_SECRET!;
 const REFRESH_SECRET = process.env.REFRESH_SECRET!;

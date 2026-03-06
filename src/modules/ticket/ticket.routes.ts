@@ -1,8 +1,5 @@
-import { Router } from "express";
-import {
-  isAuthenticated,
-  authorizeRoles,
-} from "../user/user.middlewares.ts";
+import { Router } from 'express';
+import { uploadTicketImages } from '#utils/upload.ts';
 import {
   createTicketController,
   getAllTicketsController,
@@ -12,63 +9,65 @@ import {
   updateTicketController,
   updateTicketProgressController,
   getAssignedTicketsController,
-} from "./ticket.controllers.ts";
-import { uploadTicketImages } from "#utils/upload.ts";
+} from './ticket.controllers.ts';
+import { isAuthenticated, authorizeRoles } from '../user/user.middlewares.ts';
 
 const ticketRouter: Router = Router();
 
 ticketRouter.post(
-  "/",
+  '/',
   isAuthenticated,
-  authorizeRoles("TENANT"),
+  authorizeRoles('TENANT'),
   uploadTicketImages,
-  createTicketController
+  createTicketController,
 );
 
 ticketRouter.get(
-  "/my",
+  '/my',
   isAuthenticated,
-  authorizeRoles("TENANT"),
-  getMyTicketsController
+  authorizeRoles('TENANT'),
+  getMyTicketsController,
 );
 
 ticketRouter.get(
-  "/",
+  '/',
   isAuthenticated,
-  authorizeRoles("MANAGER"),
+  authorizeRoles('MANAGER'),
   getAllTicketsController,
 );
 
 ticketRouter.get(
-  "/:id",
+  '/:id',
   isAuthenticated,
-  authorizeRoles("MANAGER", "TENANT", "TECHNICIAN"),
-  getTicketByIdController
+  authorizeRoles('MANAGER', 'TENANT', 'TECHNICIAN'),
+  getTicketByIdController,
 );
 
 ticketRouter.patch(
-  "/:id/assign",
+  '/:id/assign',
   isAuthenticated,
-  authorizeRoles("MANAGER"),
-  assignTicketController
+  authorizeRoles('MANAGER'),
+  assignTicketController,
 );
 ticketRouter.patch(
-  "/:id",
+  '/:id',
   isAuthenticated,
-  authorizeRoles("MANAGER"),
-  updateTicketController
+  authorizeRoles('MANAGER'),
+  updateTicketController,
 );
 
 ticketRouter.get(
-  "/assigned", 
-  isAuthenticated, 
-  authorizeRoles("TECHNICIAN"), 
-  getAssignedTicketsController);
+  '/assigned',
+  isAuthenticated,
+  authorizeRoles('TECHNICIAN'),
+  getAssignedTicketsController,
+);
 
 ticketRouter.patch(
-  "/:id/progress", 
-  isAuthenticated, 
-  authorizeRoles("TECHNICIAN"), 
-  updateTicketProgressController);
+  '/:id/progress',
+  isAuthenticated,
+  authorizeRoles('TECHNICIAN'),
+  updateTicketProgressController,
+);
 
 export default ticketRouter;

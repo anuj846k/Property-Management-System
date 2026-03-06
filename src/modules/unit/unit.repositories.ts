@@ -1,6 +1,6 @@
-import { db } from "#db/db.ts";
-import { units } from "./unit.models.ts";
-import { and, eq } from "drizzle-orm";
+import { and, eq } from 'drizzle-orm';
+import { db } from '#db/db.ts';
+import { units } from './unit.models.ts';
 type CreateUnitRepoInput = {
   propertyId: string;
   unitNumber: string;
@@ -21,15 +21,15 @@ export const createUnit = async (data: CreateUnitRepoInput) => {
 };
 
 export const findUnitByPropertyAndNumber = async (
-    propertyId: string,
-    unitNumber: string
-  ) => {
-    const [unit] = await db
-      .select()
-      .from(units)
-      .where(
-        and(eq(units.propertyId, propertyId), eq(units.unitNumber, unitNumber))
-      )
-      .limit(1);
-    return unit ?? null;
-  };
+  propertyId: string,
+  unitNumber: string,
+) => {
+  const [unit] = await db
+    .select()
+    .from(units)
+    .where(
+      and(eq(units.propertyId, propertyId), eq(units.unitNumber, unitNumber)),
+    )
+    .limit(1);
+  return unit ?? null;
+};

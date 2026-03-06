@@ -1,5 +1,5 @@
-import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
+import fs from 'fs';
+import { v2 as cloudinary } from 'cloudinary';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
@@ -7,8 +7,10 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET!,
 });
 
-export const uploadToCloudinary = async (source: Buffer | string): Promise<string> => {
-  if (typeof source === "string") {
+export const uploadToCloudinary = async (
+  source: Buffer | string,
+): Promise<string> => {
+  if (typeof source === 'string') {
     const fileBuffer = fs.readFileSync(source);
     return uploadBufferToCloudinary(fileBuffer);
   }
@@ -18,13 +20,13 @@ export const uploadToCloudinary = async (source: Buffer | string): Promise<strin
 const uploadBufferToCloudinary = (buffer: Buffer): Promise<string> => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder: "tickets" },
+      { folder: 'tickets' },
       (error, result) => {
         if (error || !result) {
           return reject(error);
         }
         resolve(result.secure_url);
-      }
+      },
     );
 
     stream.end(buffer);

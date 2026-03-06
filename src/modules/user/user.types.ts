@@ -1,10 +1,10 @@
-import { pgEnum } from "drizzle-orm/pg-core";
+import { pgEnum } from 'drizzle-orm/pg-core';
 
-export const roleEnum = pgEnum("role", [
-  "TENANT",
-  "MANAGER",
-  "TECHNICIAN",
-  "ADMIN",
+export const roleEnum = pgEnum('role', [
+  'TENANT',
+  'MANAGER',
+  'TECHNICIAN',
+  'ADMIN',
 ]);
 
 export type UserRole = 'TENANT' | 'MANAGER' | 'TECHNICIAN' | 'ADMIN';

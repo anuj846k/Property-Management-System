@@ -1,23 +1,13 @@
-import {
-    pgTable,
-    uuid,
-    text,
-    timestamp,
-    pgEnum,
-    boolean,
-    integer
-  } from "drizzle-orm/pg-core";
-import { properties } from "../property/property.models.ts";
-import { users } from "../user/user.models.ts";
+import { pgTable, uuid, text, integer } from 'drizzle-orm/pg-core';
+import { properties } from '../property/property.models.ts';
+import { users } from '../user/user.models.ts';
 
-export const units = pgTable("units", {
-    id: uuid("id").defaultRandom().primaryKey(),
-    propertyId: uuid("property_id")
-      .notNull()
-      .references(() => properties.id),
-    unitNumber: text("unit_number").notNull(),
-    floor: integer("floor").notNull(),
-    tenantId: uuid("tenant_id")
-      .references(() => users.id),
-  });
-  
+export const units = pgTable('units', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  propertyId: uuid('property_id')
+    .notNull()
+    .references(() => properties.id),
+  unitNumber: text('unit_number').notNull(),
+  floor: integer('floor').notNull(),
+  tenantId: uuid('tenant_id').references(() => users.id),
+});

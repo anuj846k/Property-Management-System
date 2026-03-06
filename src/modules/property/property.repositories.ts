@@ -1,7 +1,7 @@
-import { db } from "#db/db.ts";
-import { properties } from "./property.models.ts";
-import { units } from "../unit/unit.models.ts";
-import { eq } from "drizzle-orm";
+import { eq } from 'drizzle-orm';
+import { db } from '#db/db.ts';
+import { properties } from './property.models.ts';
+import { units } from '../unit/unit.models.ts';
 
 type CreatePropertyRepoInput = {
   name: string;
@@ -23,14 +23,13 @@ export const createProperty = async (data: CreatePropertyRepoInput) => {
 };
 
 export const findPropertiesByManagerId = async (managerId: string) => {
-    const results = await db
-      .select()
-      .from(properties)
-      .where(eq(properties.managerId, managerId));
-    return results;
-  };
+  const results = await db
+    .select()
+    .from(properties)
+    .where(eq(properties.managerId, managerId));
+  return results;
+};
 
-  
 export const findPropertyById = async (id: string) => {
   const [property] = await db
     .select()
@@ -41,15 +40,12 @@ export const findPropertyById = async (id: string) => {
 };
 
 export const findUnitsByPropertyId = async (propertyId: string) => {
-  return db
-    .select()
-    .from(units)
-    .where(eq(units.propertyId, propertyId));
+  return db.select().from(units).where(eq(units.propertyId, propertyId));
 };
 
 export const updatePropertyManager = async (
   propertyId: string,
-  managerId: string
+  managerId: string,
 ) => {
   const [updated] = await db
     .update(properties)

@@ -1,6 +1,6 @@
 import logger from '#utils/logger.ts';
-import { ALLOWED_USER_ROLES, type UserRole } from './user.types.ts';
 import * as userService from './user.services.ts';
+import { ALLOWED_USER_ROLES, type UserRole } from './user.types.ts';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -10,10 +10,8 @@ const COOKIE_OPTIONS = {
   sameSite: 'strict' as const,
 };
 
-const ACCESS_COOKIE_MAX_AGE =
-  15 * 60 * 1000;
-const REFRESH_COOKIE_MAX_AGE =
-  7 * 24 * 60 * 60 * 1000;
+const ACCESS_COOKIE_MAX_AGE = 15 * 60 * 1000;
+const REFRESH_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
 const setCookies = (res: any, accessToken: string, refreshToken: string) => {
   res.cookie('access_token', accessToken, {
