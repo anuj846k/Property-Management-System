@@ -1,4 +1,4 @@
-import { AppError } from '#utils/ErrorUtil.ts';
+import { AppError } from '#utils/error.ts';
 import logger from '#utils/logger.ts';
 import type { CreateUnitInput } from '#validations/unit.validations.ts';
 import {

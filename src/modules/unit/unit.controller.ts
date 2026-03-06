@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { AppError } from '#utils/ErrorUtil.ts';
+import { AppError } from '#utils/error.ts';
 import logger from '#utils/logger.ts';
 import { createUnitSchema } from '#validations/unit.validations.ts';
 import { createUnitService } from './unit.services.ts';

@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import type { StringValue } from 'ms';
 import { hashPassword, VerifyPassword } from '#utils/argon.ts';
-import { AppError } from '#utils/ErrorUtil.ts';
+import { AppError } from '#utils/error.ts';
 import logger from '#utils/logger.ts';
 import { userSchema } from '#validations/user.validations.ts';
 import {

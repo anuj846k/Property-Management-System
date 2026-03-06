@@ -1,5 +1,5 @@
 import { uploadToCloudinary } from '#utils/cloudinary.ts';
-import { AppError } from '#utils/ErrorUtil.ts';
+import { AppError } from '#utils/error.ts';
 import logger from '#utils/logger.ts';
 import type {
   TicketAssignInput,

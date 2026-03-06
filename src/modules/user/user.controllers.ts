@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { AppError } from '#utils/ErrorUtil.ts';
+import { AppError } from '#utils/error.ts';
 import logger from '#utils/logger.ts';
 import * as userService from './user.services.ts';
 import { ALLOWED_USER_ROLES, type UserRole } from './user.types.ts';
