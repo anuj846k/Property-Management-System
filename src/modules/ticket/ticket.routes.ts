@@ -3,7 +3,14 @@ import {
   isAuthenticated,
   authorizeRoles,
 } from "../user/user.middlewares.ts";
-import { createTicketController, getAllTicketsController, getMyTicketsController, getTicketByIdController } from "./ticket.controllers.ts";
+import {
+  createTicketController,
+  getAllTicketsController,
+  getMyTicketsController,
+  getTicketByIdController,
+  assignTicketController,
+  updateTicketController,
+} from "./ticket.controllers.ts";
 import { uploadTicketImages } from "#utils/upload.ts";
 
 const ticketRouter: Router = Router();
@@ -35,6 +42,19 @@ ticketRouter.get(
   isAuthenticated,
   authorizeRoles("MANAGER", "TENANT", "TECHNICIAN"),
   getTicketByIdController
+);
+
+ticketRouter.patch(
+  "/:id/assign",
+  isAuthenticated,
+  authorizeRoles("MANAGER"),
+  assignTicketController
+);
+ticketRouter.patch(
+  "/:id",
+  isAuthenticated,
+  authorizeRoles("MANAGER"),
+  updateTicketController
 );
 
 export default ticketRouter;
