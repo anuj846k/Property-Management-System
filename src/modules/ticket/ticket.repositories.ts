@@ -1,11 +1,11 @@
 import { db } from "#db/db.ts";
-import { desc } from "drizzle-orm";
+import { desc, eq, and } from "drizzle-orm";
 import { tickets } from "./ticket.models.ts";
 import { ticketImages } from "./ticket.models.ts";
 import { activityLogs } from "../activity/activity.models.ts";
 import { actionTypeEnum } from "../activity/activity.models.ts";
-import { eq, and } from "drizzle-orm";
 import { units } from "../unit/unit.models.ts";
+import { properties } from "../property/property.models.ts";
 
 type CreateTicketRepoInput = {
   title: string;
@@ -29,6 +29,15 @@ export const findUnitByPropertyAndNumber = async (
   
     return unit || null;
   };
+
+export const findUnitById = async (id: string) => {
+  const [unit] = await db
+    .select()
+    .from(units)
+    .where(eq(units.id, id))
+    .limit(1);
+  return unit ?? null;
+};
 
   export const createTicket = async (data: CreateTicketRepoInput) => {
     const [ticket] = await db
@@ -91,4 +100,60 @@ export const findTicketsByTenantId = async (tenantId: string) => {
     .orderBy(desc(tickets.createdAt));
 
   return results;
+};
+
+export type ListTicketsFilters = {
+  status?: (typeof tickets.$inferSelect.status) | null;
+  priority?: (typeof tickets.$inferSelect.priority) | null;
+  propertyId?: string | null;
+};
+
+export const findAllTicketsForManager = async (
+  managerId: string,
+  filters?: ListTicketsFilters
+) => {
+  const conditions = [eq(properties.managerId, managerId)];
+  if (filters?.status != null) conditions.push(eq(tickets.status, filters.status));
+  if (filters?.priority != null) conditions.push(eq(tickets.priority, filters.priority));
+  if (filters?.propertyId != null) conditions.push(eq(properties.id, filters.propertyId));
+
+  const results = await db
+    .select({
+      ticket: tickets,
+      unitNumber: units.unitNumber,
+      propertyId: properties.id,
+      propertyName: properties.name,
+    })
+    .from(tickets)
+    .innerJoin(units, eq(tickets.unitId, units.id))
+    .innerJoin(properties, eq(units.propertyId, properties.id))
+    .where(and(...conditions))
+    .orderBy(desc(tickets.createdAt));
+
+  return results;
+};
+
+export const findTicketById = async (id: string) => {
+  const [row] = await db
+    .select()
+    .from(tickets)
+    .where(eq(tickets.id, id))
+    .limit(1);
+  return row ?? null;
+};
+
+export const findTicketImagesByTicketId = async (ticketId: string) => {
+  return db
+    .select()
+    .from(ticketImages)
+    .where(eq(ticketImages.ticketId, ticketId))
+    .orderBy(desc(ticketImages.uploadedAt));
+};
+
+export const findActivityLogsByTicketId = async (ticketId: string) => {
+  return db
+    .select()
+    .from(activityLogs)
+    .where(eq(activityLogs.ticketId, ticketId))
+    .orderBy(desc(activityLogs.createdAt));
 };

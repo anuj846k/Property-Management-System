@@ -2,13 +2,20 @@ import { uploadToCloudinary } from "#utils/cloudinary.ts";
 import { AppError } from "#utils/ErrorUtil.ts";
 import logger from "#utils/logger.ts";
 import type { TicketCreateInput } from "#validations/ticket.validations.ts";
+import { findPropertyById } from "../property/property.repositories.ts";
 import {
-    createActivityLog,
-    createTicket,
-    createTicketImage,
-    findTicketsByTenantId,
-    findUnitByPropertyAndNumber,
+  createActivityLog,
+  createTicket,
+  createTicketImage,
+  findActivityLogsByTicketId,
+  findAllTicketsForManager,
+  findTicketById,
+  findTicketImagesByTicketId,
+  findTicketsByTenantId,
+  findUnitByPropertyAndNumber,
+  findUnitById,
 } from "./ticket.repositories.ts";
+import type { ListTicketsFilters } from "./ticket.repositories.ts";
 
 export const createTicketService = async (
   userId: string,
@@ -90,4 +97,61 @@ export const getMyTicketsService = async (tenantId: string) => {
     logger.error(`getMyTicketsService error: ${error.message || error}`);
     throw error;
   }
+};
+
+export const getAllTicketsService = async (
+  managerId: string,
+  filters?: ListTicketsFilters
+) => {
+  try {
+    const results = await findAllTicketsForManager(managerId, filters);
+    logger.info(
+      `Fetched ${results.length} tickets for managerId=${managerId} with filters`,
+      { filters }
+    );
+    return results;
+  } catch (error: any) {
+    logger.error(`getAllTicketsService error: ${error.message || error}`);
+    throw error;
+  }
+};
+
+type UserForAccess = { userId: string; role: string };
+
+export const getTicketByIdService = async (
+  ticketId: string,
+  user: UserForAccess
+) => {
+  const ticket = await findTicketById(ticketId);
+  if (!ticket) {
+    throw new AppError("Ticket not found", 404);
+  }
+
+  if (user.role === "TENANT") {
+    if (ticket.tenantId !== user.userId) {
+      throw new AppError("You do not have access to this ticket", 403);
+    }
+  } else if (user.role === "TECHNICIAN") {
+    if (ticket.technicianId !== user.userId) {
+      throw new AppError("You do not have access to this ticket", 403);
+    }
+  } else if (user.role === "MANAGER") {
+    const unit = await findUnitById(ticket.unitId);
+    if (!unit) {
+      throw new AppError("Ticket unit not found", 404);
+    }
+    const property = await findPropertyById(unit.propertyId);
+    if (!property || property.managerId !== user.userId) {
+      throw new AppError("You do not have access to this ticket", 403);
+    }
+  } else {
+    throw new AppError("You do not have access to this ticket", 403);
+  }
+
+  const [images, activity] = await Promise.all([
+    findTicketImagesByTicketId(ticketId),
+    findActivityLogsByTicketId(ticketId),
+  ]);
+
+  return { ticket, images, activity };
 };

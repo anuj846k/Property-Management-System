@@ -1,8 +1,16 @@
 import { AppError } from "#utils/ErrorUtil.ts";
 import logger from "#utils/logger.ts";
 import type { Request, Response } from "express";
-import { ticketCreateSchema } from "#validations/ticket.validations.ts";
-import { createTicketService, getMyTicketsService } from "./ticket.services.ts";
+import {
+  ticketCreateSchema,
+  ticketListQuerySchema,
+} from "#validations/ticket.validations.ts";
+import {
+  createTicketService,
+  getAllTicketsService,
+  getMyTicketsService,
+  getTicketByIdService,
+} from "./ticket.services.ts";
 
 export const createTicketController = async (req: Request, res: Response) => {
   try {
@@ -56,3 +64,54 @@ export const getMyTicketsController = async (req: Request, res: Response) => {
         .json({ message: error.message || "Internal Server Error" });
     }
   };
+
+export const getAllTicketsController = async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    if (!user || !user.userId) {
+      throw new AppError("Unauthorized", 401);
+    }
+
+    const parseResult = ticketListQuerySchema.safeParse(req.query);
+    const filters = parseResult.success ? parseResult.data : undefined;
+
+    logger.info(`getAllTickets request by managerId=${user.userId}`, {
+      filters,
+    });
+
+    const results = await getAllTicketsService(user.userId, filters);
+    res.status(200).json({ tickets: results });
+  } catch (error: any) {
+    logger.error(`getAllTicketsController error: ${error.message || error}`);
+    res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal Server Error" });
+  }
+};
+
+export const getTicketByIdController = async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    if (!user || !user.userId) {
+      throw new AppError("Unauthorized", 401);
+    }
+
+    const ticketId = req.params.id;
+    if (!ticketId) {
+      throw new AppError("Ticket ID is required", 400);
+    }
+
+    logger.info(`getTicketById request ticketId=${ticketId} by userId=${user.userId}`);
+
+    const result = await getTicketByIdService(ticketId, {
+      userId: user.userId,
+      role: user.role,
+    });
+    res.status(200).json(result);
+  } catch (error: any) {
+    logger.error(`getTicketByIdController error: ${error.message || error}`);
+    res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal Server Error" });
+  }
+};
