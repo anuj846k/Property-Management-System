@@ -5,7 +5,7 @@ import { getTicketActivityController } from "./activity.controllers.ts";
 const activityRouter: Router = Router();
 
 activityRouter.get(
-  "/:id/activity",
+  "/:id",
   isAuthenticated,
   authorizeRoles("MANAGER", "TENANT", "TECHNICIAN"),
   getTicketActivityController
