@@ -153,17 +153,18 @@ export const getTicketByIdService = async (
     if (!property || property.managerId !== user.userId) {
       throw new AppError('You do not have access to this ticket', 403);
     }
-  } else if (user.role === 'ADMIN') {
-    return { ticket, images: [], activity: [] };
-  }
-   else {
-    throw new AppError('You do not have access to this ticket', 403);
   }
 
   const [images, activity] = await Promise.all([
     findTicketImagesByTicketId(ticketId),
     findActivityLogsByTicketId(ticketId),
   ]);
+
+  if (user.role === 'ADMIN') {
+    return { ticket, images, activity };
+  } else {
+    throw new AppError('You do not have access to this ticket', 403);
+  }
 
   return { ticket, images, activity };
 };

@@ -16,6 +16,7 @@ export const ticketListQuerySchema = z.object({
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
   propertyId: z.uuid().optional(),
 });
+
 // Add to ticket.validations.ts
 
 export const ticketAssignSchema = z.object({

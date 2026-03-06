@@ -67,11 +67,13 @@ export const createTicketController = async (
 
     logger.info(`CreateTicket request by userId=${user.userId}`);
 
+    const fileArray = Array.isArray(files) ? files : [];
+    
     const ticket = await createTicketService(
       user.userId,
       user.userId,
       data,
-      files as Express.Multer.File[],
+      fileArray,
     );
 
     res.status(201).json({ ticket });
