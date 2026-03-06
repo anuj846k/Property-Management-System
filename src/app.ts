@@ -7,6 +7,7 @@ import logger from '#utils/logger.ts';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import activityRouter from '#modules/activity/activity.routes.ts';
+import notificationRouter from '#modules/notification/notification.routes.ts';
 
 dotenv.config()
 
@@ -43,6 +44,7 @@ app.get('/api', (req, res) => {
 
 
 app.use('/api/v1/users', userRouter) // User Routes
+app.use('/api/v1/notifications', notificationRouter) // Notification Routes
 app.use('/api/v1/activity', activityRouter) // Activity Routes
 app.use('/api/v1/tickets', ticketRouter) // Ticket Routes
 app.use('/api/v1/properties', propertyRouter) // Property Routes    
