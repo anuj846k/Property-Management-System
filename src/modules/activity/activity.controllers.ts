@@ -8,7 +8,7 @@ export const getTicketActivityController = async (
   res: Response,
 ) => {
   try {
-    const user = (req as any).user;
+    const user = req.user;
     if (!user || !user.userId) {
       throw new AppError('Unauthorized', 401);
     }
@@ -20,12 +20,12 @@ export const getTicketActivityController = async (
 
     const activity = await getTicketActivityService(ticketId as string, user);
     res.status(200).json({ activity });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    const statusCode = error instanceof AppError ? error.statusCode : 500;
     logger.error(
-      `getTicketActivityController error: ${error.message || error}`,
+      `getTicketActivityController error: ${message}`,
     );
-    res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || 'Internal Server Error' });
+    res.status(statusCode).json({ message: message || 'Internal Server Error' });
   }
 };

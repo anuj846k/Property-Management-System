@@ -1,9 +1,11 @@
 import { AppError } from '#utils/ErrorUtil.ts';
 import logger from '#utils/logger.ts';
 import { findPropertyById } from '../property/property.repositories.ts';
-import { findTicketById } from '../ticket/ticket.repositories.ts';
-import { findActivityLogsByTicketId } from '../ticket/ticket.repositories.ts';
-import { findUnitById } from '../ticket/ticket.repositories.ts';
+import {
+  findActivityLogsByTicketId,
+  findTicketById,
+  findUnitById,
+} from '../ticket/ticket.repositories.ts';
 import type { TokenPayload } from '../user/user.types.ts';
 
 export const getTicketActivityService = async (

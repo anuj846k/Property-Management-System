@@ -178,8 +178,9 @@ export const RefreshAccessToken = (refreshToken: string) => {
     );
 
     return { accessToken, refreshToken: newRefreshToken };
-  } catch (error: any) {
-    logger.error(`RefreshAccessToken error: ${error.message || error}`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(`RefreshAccessToken error: ${message}`);
     throw new AppError('Invalid or expired refresh token', 401);
   }
 };

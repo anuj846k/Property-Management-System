@@ -1,12 +1,11 @@
 import { uploadToCloudinary } from '#utils/cloudinary.ts';
 import { AppError } from '#utils/ErrorUtil.ts';
 import logger from '#utils/logger.ts';
-import type { TicketCreateInput } from '#validations/ticket.validations.ts';
 import type {
   TicketAssignInput,
+  TicketCreateInput,
   TicketUpdateInput,
 } from '#validations/ticket.validations.ts';
-import type { ListTicketsFilters } from './ticket.repositories.ts';
 import {
   createActivityLog,
   createTicket,
@@ -15,13 +14,15 @@ import {
   findAllTicketsForManager,
   findTicketById,
   findTicketImagesByTicketId,
+  findTicketsByTechnicianId,
   findTicketsByTenantId,
   findUnitByPropertyAndNumber,
   findUnitById,
-  findTicketsByTechnicianId,
+  updateTicket,
+  type ListTicketsFilters,
 } from './ticket.repositories.ts';
-import { updateTicket } from './ticket.repositories.ts';
 import { findPropertyById } from '../property/property.repositories.ts';
+import { findUserById } from '../user/user.repositories.ts';
 
 export const createTicketService = async (
   userId: string,
@@ -71,9 +72,9 @@ export const createTicketService = async (
       unitId: unit.id,
     });
 
-    if (data.imageUrls && data.imageUrls.length > 0) {
+    if (ticket?.id && allImageUrls.length > 0) {
       await Promise.all(
-        data.imageUrls.map((url) => createTicketImage(ticket?.id ?? '', url)),
+        allImageUrls.map((url) => createTicketImage(ticket.id, url)),
       );
     }
 
@@ -87,8 +88,9 @@ export const createTicketService = async (
 
     logger.info(`Ticket created id=${ticket?.id} by tenantId=${tenantId}`);
     return ticket;
-  } catch (error: any) {
-    logger.error(`createTicketService error: ${error.message || error}`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(`createTicketService error: ${message}`);
     throw error;
   }
 };
@@ -98,8 +100,9 @@ export const getMyTicketsService = async (tenantId: string) => {
     const tickets = await findTicketsByTenantId(tenantId);
     logger.info(`Fetched ${tickets.length} tickets for tenantId=${tenantId}`);
     return tickets;
-  } catch (error: any) {
-    logger.error(`getMyTicketsService error: ${error.message || error}`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(`getMyTicketsService error: ${message}`);
     throw error;
   }
 };
@@ -115,8 +118,9 @@ export const getAllTicketsService = async (
       { filters },
     );
     return results;
-  } catch (error: any) {
-    logger.error(`getAllTicketsService error: ${error.message || error}`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(`getAllTicketsService error: ${message}`);
     throw error;
   }
 };
@@ -160,9 +164,6 @@ export const getTicketByIdService = async (
 
   return { ticket, images, activity };
 };
-
-// Add imports
-import { findUserById } from '../user/user.repositories.ts';
 
 /**
  * Assigns a technician to a ticket. Manager must have access to the ticket's property.
@@ -212,10 +213,10 @@ export const assignTicketService = async (
     ticketId,
     performedBy: managerId,
     actionType: 'ASSIGNED',
-    oldValue: previousTechnicianId
-      ? `Assigned to ${previousTechnicianId}`
-      : 'Unassigned',
-    newValue: `Assigned to technician ${technician.name} (${technician.email})`,
+    oldValue: `Technician: ${previousTechnicianId ?? 'Unassigned'}; Status: ${
+      previousStatus ?? 'OPEN'
+    }`,
+    newValue: `Technician: ${technician.name} (${technician.email}); Status: ASSIGNED`,
   });
 
   logger.info(

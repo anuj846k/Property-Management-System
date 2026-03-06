@@ -1,9 +1,7 @@
 import { desc, eq, and } from 'drizzle-orm';
 import { db } from '#db/db.ts';
-import { tickets } from './ticket.models.ts';
-import { ticketImages } from './ticket.models.ts';
-import { activityLogs } from '../activity/activity.models.ts';
-import type { actionTypeEnum } from '../activity/activity.models.ts';
+import { ticketImages, tickets } from './ticket.models.ts';
+import { activityLogs, type actionTypeEnum } from '../activity/activity.models.ts';
 import { properties } from '../property/property.models.ts';
 import { units } from '../unit/unit.models.ts';
 
@@ -106,13 +104,13 @@ export const findAllTicketsForManager = async (
   filters?: ListTicketsFilters,
 ) => {
   const conditions = [eq(properties.managerId, managerId)];
-  if (filters?.status != null) {
+  if (filters?.status !== null && filters?.status !== undefined) {
     conditions.push(eq(tickets.status, filters.status));
   }
-  if (filters?.priority != null) {
+  if (filters?.priority !== null && filters?.priority !== undefined) {
     conditions.push(eq(tickets.priority, filters.priority));
   }
-  if (filters?.propertyId != null) {
+  if (filters?.propertyId !== null && filters?.propertyId !== undefined) {
     conditions.push(eq(properties.id, filters.propertyId));
   }
 

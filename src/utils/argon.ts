@@ -1,7 +1,7 @@
 import argon2 from 'argon2';
 
 export const hashPassword = async (password: string) => {
-  return await argon2.hash(password, {
+  return argon2.hash(password, {
     type: argon2.argon2id,
     memoryCost: 2 ** 16,
     timeCost: 5,
@@ -13,5 +13,5 @@ export const VerifyPassword = async (
   hashedPassword: string,
   password: string,
 ) => {
-  return await argon2.verify(hashedPassword, password);
+  return argon2.verify(hashedPassword, password);
 };

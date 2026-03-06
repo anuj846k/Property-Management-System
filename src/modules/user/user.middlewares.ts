@@ -1,7 +1,9 @@
+import type { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import logger from '#utils/logger.ts';
+import type { TokenPayload } from './user.types.ts';
 
-export const isAuthenticated = (req: any, res: any, next: any) => {
+export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
   const token = req.cookies.access_token;
 
   if (!token) {
@@ -13,19 +15,23 @@ export const isAuthenticated = (req: any, res: any, next: any) => {
 
   try {
     const decoded = jwt.verify(token, process.env.ACCESS_SECRET!);
-    req.user = decoded;
-    logger.info(`Token verified successfully for userId: ${decoded}`);
+    if (typeof decoded === 'string') {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+    req.user = decoded as TokenPayload;
+    logger.info(`Token verified successfully for userId: ${req.user.userId}`);
     next();
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
     logger.error(
-      `Invalid token attempt from IP: ${req.ip} to ${req.originalUrl} - ${error.message}`,
+      `Invalid token attempt from IP: ${req.ip} to ${req.originalUrl} - ${message}`,
     );
     return res.status(401).json({ message: 'Invalid token' });
   }
 };
 
 export const authorizeRoles = (...allowedRoles: string[]) => {
-  return (req: any, res: any, next: any) => {
+  return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({ message: 'Unauthorized' });
     }

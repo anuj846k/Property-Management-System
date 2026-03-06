@@ -58,7 +58,8 @@ app.use((req, res) => {
 });
 
 // Global error handler
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
+  void _next;
   logger.error(`Error: ${err.message}`, {
     stack: err.stack,
     path: req.path,

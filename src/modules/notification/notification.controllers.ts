@@ -10,19 +10,19 @@ export const getMyNotificationsController = async (
   res: Response,
 ) => {
   try {
-    const user = (req as any).user;
+    const user = req.user;
     if (!user?.userId) {
       throw new AppError('Unauthorized', 401);
     }
     const notifications = await getMyNotificationsService(user.userId);
     res.status(200).json({ notifications });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    const statusCode = error instanceof AppError ? error.statusCode : 500;
     logger.error(
-      `getMyNotificationsController error: ${error.message || error}`,
+      `getMyNotificationsController error: ${message}`,
     );
-    res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || 'Internal Server Error' });
+    res.status(statusCode).json({ message: message || 'Internal Server Error' });
   }
 };
 
@@ -31,7 +31,7 @@ export const markNotificationAsReadController = async (
   res: Response,
 ) => {
   try {
-    const user = (req as any).user;
+    const user = req.user;
     if (!user?.userId) {
       throw new AppError('Unauthorized', 401);
     }
@@ -44,12 +44,12 @@ export const markNotificationAsReadController = async (
       user.userId,
     );
     res.status(200).json({ notification: updated });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    const statusCode = error instanceof AppError ? error.statusCode : 500;
     logger.error(
-      `markNotificationAsReadController error: ${error.message || error}`,
+      `markNotificationAsReadController error: ${message}`,
     );
-    res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || 'Internal Server Error' });
+    res.status(statusCode).json({ message: message || 'Internal Server Error' });
   }
 };

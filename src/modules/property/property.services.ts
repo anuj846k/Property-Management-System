@@ -8,6 +8,7 @@ import {
   findUnitsByPropertyId,
   updatePropertyManager,
 } from './property.repositories.ts';
+import { findUserById } from '../user/user.repositories.ts';
 
 export const createPropertyService = async (
   managerId: string,
@@ -28,8 +29,9 @@ export const createPropertyService = async (
       `Property created id=${property?.id} by managerId=${managerId}`,
     );
     return property;
-  } catch (error: any) {
-    logger.error(`createPropertyService error: ${error.message || error}`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(`createPropertyService error: ${message}`);
     throw error;
   }
 };
@@ -42,9 +44,10 @@ export const getPropertiesForManagerService = async (managerId: string) => {
       `Fetched ${props.length} properties for managerId=${managerId}`,
     );
     return props;
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
     logger.error(
-      `getPropertiesForManagerService error: ${error.message || error}`,
+      `getPropertiesForManagerService error: ${message}`,
     );
     throw error;
   }
@@ -64,8 +67,6 @@ export const getPropertyByIdService = async (
   const unitsList = await findUnitsByPropertyId(propertyId);
   return { property, units: unitsList };
 };
-
-import { findUserById } from '../user/user.repositories.ts';
 
 // ...
 
