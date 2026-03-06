@@ -275,3 +275,14 @@
 {"level":"info","message":"Logger initialized with level: debug","service":"property-maintenance-api","timestamp":"2026-03-05T13:30:16.794Z"}
 {"level":"info","message":"API server is running on http://localhost:8000","service":"property-maintenance-api","timestamp":"2026-03-05T13:30:20.388Z"}
 {"level":"info","message":"Shutting down gracefully...","service":"property-maintenance-api","timestamp":"2026-03-05T13:30:29.885Z"}
+{"level":"info","message":"Logger initialized with level: info","service":"property-maintenance-api","timestamp":"2026-03-05T15:28:28.482Z"}
+{"level":"info","message":"Logger initialized with level: info","service":"property-maintenance-api","timestamp":"2026-03-05T15:29:03.061Z"}
+{"level":"info","message":"Logger initialized with level: info","service":"property-maintenance-api","timestamp":"2026-03-05T15:30:09.420Z"}
+{"level":"info","message":"Logger initialized with level: info","service":"property-maintenance-api","timestamp":"2026-03-05T15:30:15.407Z"}
+{"level":"info","message":"Logger initialized with level: info","service":"property-maintenance-api","timestamp":"2026-03-05T15:30:22.905Z"}
+{"level":"info","message":"Logger initialized with level: info","service":"property-maintenance-api","timestamp":"2026-03-05T15:30:28.119Z"}
+{"level":"info","message":"Logger initialized with level: info","service":"property-maintenance-api","timestamp":"2026-03-05T15:30:32.625Z"}
+{"level":"info","message":"Logger initialized with level: info","service":"property-maintenance-api","timestamp":"2026-03-05T15:30:38.421Z"}
+{"level":"info","message":"Logger initialized with level: info","service":"property-maintenance-api","timestamp":"2026-03-05T15:30:44.601Z"}
+{"level":"info","message":"Logger initialized with level: info","service":"property-maintenance-api","timestamp":"2026-03-05T15:30:48.198Z"}
+{"level":"info","message":"Logger initialized with level: info","service":"property-maintenance-api","timestamp":"2026-03-05T15:31:28.107Z"}

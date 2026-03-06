@@ -5,6 +5,9 @@ import ticketRouter from './modules/ticket/ticket.routes.ts';
 import userRouter from './modules/user/user.routes.ts';
 import logger from '#utils/logger.ts';
 import morgan from 'morgan';
+import dotenv from 'dotenv';
+
+dotenv.config()
 
 // Initialize Express app
 const app: Express = express();

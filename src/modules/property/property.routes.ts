@@ -7,13 +7,13 @@ import {
   assignManagerController,
 } from "./property.controllers.ts";
 
-const propertyRouter = Router();
+const propertyRouter: Router = Router();
 
 // POST /api/v1/properties
 propertyRouter.post(
   "/",
   isAuthenticated,
-  authorizeRoles("MANAGER"),
+  authorizeRoles("ADMIN"),
   createPropertyController
 );
 
@@ -21,7 +21,7 @@ propertyRouter.post(
 propertyRouter.get(
   "/",
   isAuthenticated,
-  authorizeRoles("MANAGER"),
+  authorizeRoles("ADMIN"),
   getPropertiesController
 );
 
@@ -29,7 +29,7 @@ propertyRouter.get(
 propertyRouter.get(
   "/:id",
   isAuthenticated,
-  authorizeRoles("MANAGER"),
+  authorizeRoles("ADMIN"),
   getPropertyByIdController
 );
 
