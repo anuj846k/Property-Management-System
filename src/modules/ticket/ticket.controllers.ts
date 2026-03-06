@@ -4,6 +4,7 @@ import type { Request, Response } from "express";
 import {
   ticketCreateSchema,
   ticketListQuerySchema,
+  ticketProgressSchema,
 } from "#validations/ticket.validations.ts";
 import {
   createTicketService,
@@ -11,6 +12,7 @@ import {
   getAssignedTicketsService,
   getMyTicketsService,
   getTicketByIdService,
+  updateTicketProgressService,
 } from "./ticket.services.ts";
 import type { ListTicketsFilters } from "./ticket.repositories.ts";
 
@@ -210,3 +212,24 @@ export const getAssignedTicketsController = async (req: Request, res: Response) 
       .json({ message: error.message || "Internal Server Error" });
   }
 };
+
+export const updateTicketProgressController = async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    if (!user?.userId) throw new AppError("Unauthorized", 401);
+    const ticketId = req.params.id;
+    if (!ticketId) throw new AppError("Ticket ID is required", 400);
+    const parseResult = ticketProgressSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      const messages = parseResult.error.issues.map((i) => i.message).join(", ");
+      throw new AppError(messages, 400);
+    }
+    const ticket = await updateTicketProgressService(ticketId as string, user.userId, parseResult.data);
+    res.status(200).json({ ticket });
+  } catch (error: any) {
+    logger.error(`updateTicketProgressController error: ${error.message || error}`);
+    res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal Server Error" });
+  }
+};  
