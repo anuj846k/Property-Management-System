@@ -11,9 +11,6 @@ importers:
       argon2:
         specifier: ^0.44.0
         version: 0.44.0
-      body-parser:
-        specifier: ^2.2.2
-        version: 2.2.2
       cloudinary:
         specifier: ^2.9.0
         version: 2.9.0
@@ -23,9 +20,6 @@ importers:
       cookie-parser:
         specifier: ^1.4.7
         version: 1.4.7
-      crypto:
-        specifier: ^1.0.1
-        version: 1.0.1
       dotenv:
         specifier: ^17.3.1
         version: 17.3.1
@@ -50,6 +44,9 @@ importers:
       morgan:
         specifier: ^1.10.1
         version: 1.10.1
+      ms:
+        specifier: ^2.1.3
+        version: 2.1.3
       multer:
         specifier: ^2.1.0
         version: 2.1.1
@@ -87,6 +84,9 @@ importers:
       '@types/morgan':
         specifier: ^1.9.10
         version: 1.9.10
+      '@types/ms':
+        specifier: ^2.1.0
+        version: 2.1.0
       '@types/multer':
         specifier: ^2.0.0
         version: 2.0.0
@@ -129,9 +129,6 @@ importers:
       tsx:
         specifier: ^4.21.0
         version: 4.21.0
-      typescipt:
-        specifier: ^1.0.0
-        version: 1.0.0
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -1093,10 +1090,6 @@ packages:
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
-
-  crypto@1.0.1:
-    resolution: {integrity: sha512-VxBKmeNcqQdiUQUW2Tzq0t377b54N2bMtXO/qiLa+6eRRmmC4qT3D4OnTGoT/U6O9aklQ/jTwbOtRMTTY8G0Ig==}
-    deprecated: This package is no longer supported. It's now a built-in Node module. If you've depended on crypto, you should switch to the one that's built-in.
 
   data-view-buffer@1.0.2:
     resolution: {integrity: sha512-EmKO5V3OLXh1rtK2wgXRansaK1/mtVdTUEiEI0W8RkvgT05kfxaH29PliLnpLP73yYO6142Q72QNa8Wx/A5CqQ==}
@@ -2419,9 +2412,6 @@ packages:
   typedarray@0.0.6:
     resolution: {integrity: sha512-/aCDEGatGvZ2BIk+HmLf4ifCJFwvKFNb9/JeZPMulfgFracn9QFcAf5GO8B/mweUjSoblS5In0cWhqpfs/5PQA==}
 
-  typescipt@1.0.0:
-    resolution: {integrity: sha512-Rgg7DtWh0c0oJPz2p48B0hlINIkE5zxU5i+dGctkoiKjIu6twl0HXWzoy+mvp9bQfLJGx70zYuN6GK0S/x5Kxw==}
-
   typescript-eslint@8.56.1:
     resolution: {integrity: sha512-U4lM6pjmBX7J5wk4szltF7I1cGBHXZopnAXCMXb3+fZ3B/0Z3hq3wS/CCUB2NZBNAExK92mCU2tEohWuwVMsDQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
@@ -3309,8 +3299,6 @@ snapshots:
       path-key: 3.1.1
       shebang-command: 2.0.0
       which: 2.0.2
-
-  crypto@1.0.1: {}
 
   data-view-buffer@1.0.2:
     dependencies:
@@ -4788,8 +4776,6 @@ snapshots:
       reflect.getprototypeof: 1.0.10
 
   typedarray@0.0.6: {}
-
-  typescipt@1.0.0: {}
 
   typescript-eslint@8.56.1(eslint@9.39.3)(typescript@5.9.3):
     dependencies:

@@ -1,7 +1,10 @@
 import { desc, eq, and } from 'drizzle-orm';
 import { db } from '#db/db.ts';
 import { ticketImages, tickets } from './ticket.models.ts';
-import { activityLogs, type actionTypeEnum } from '../activity/activity.models.ts';
+import {
+  activityLogs,
+  type actionTypeEnum,
+} from '../activity/activity.models.ts';
 import { properties } from '../property/property.models.ts';
 import { units } from '../unit/unit.models.ts';
 
@@ -104,6 +107,37 @@ export const findAllTicketsForManager = async (
   filters?: ListTicketsFilters,
 ) => {
   const conditions = [eq(properties.managerId, managerId)];
+  if (filters?.status !== null && filters?.status !== undefined) {
+    conditions.push(eq(tickets.status, filters.status));
+  }
+  if (filters?.priority !== null && filters?.priority !== undefined) {
+    conditions.push(eq(tickets.priority, filters.priority));
+  }
+  if (filters?.propertyId !== null && filters?.propertyId !== undefined) {
+    conditions.push(eq(properties.id, filters.propertyId));
+  }
+
+  const results = await db
+    .select({
+      ticket: tickets,
+      unitNumber: units.unitNumber,
+      propertyId: properties.id,
+      propertyName: properties.name,
+    })
+    .from(tickets)
+    .innerJoin(units, eq(tickets.unitId, units.id))
+    .innerJoin(properties, eq(units.propertyId, properties.id))
+    .where(and(...conditions))
+    .orderBy(desc(tickets.createdAt));
+
+  return results;
+};
+
+export const findAllTicketsForOwner = async (
+  ownerId: string,
+  filters?: ListTicketsFilters,
+) => {
+  const conditions = [eq(properties.ownerId, ownerId)];
   if (filters?.status !== null && filters?.status !== undefined) {
     conditions.push(eq(tickets.status, filters.status));
   }

@@ -5,29 +5,22 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1772513503720,
-      "tag": "0000_nosy_hardball",
+      "when": 1772882125703,
+      "tag": "0000_optimal_wendell_rand",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1772598258185,
-      "tag": "0001_yummy_rage",
+      "when": 1772887791009,
+      "tag": "0001_cute_alex_power",
       "breakpoints": true
     },
     {
       "idx": 2,
       "version": "7",
-      "when": 1772706240486,
-      "tag": "0002_absurd_agent_zero",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1772717385759,
-      "tag": "0003_parallel_gabe_jones",
+      "when": 1772889065352,
+      "tag": "0002_thankful_omega_red",
       "breakpoints": true
     }
   ]

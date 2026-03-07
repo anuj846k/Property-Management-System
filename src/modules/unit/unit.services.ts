@@ -10,13 +10,23 @@ import { findPropertyById } from '../property/property.repositories.ts';
 export const createUnitService = async (
   propertyId: string,
   userId: string,
+  role: string,
   data: CreateUnitInput,
 ) => {
   const property = await findPropertyById(propertyId);
   if (!property) {
     throw new AppError('Property not found', 404);
   }
-  if (property.managerId !== userId) {
+
+  // Allow if user is owner OR manager
+  const isOwner = property.ownerId === userId;
+  const isManager = property.managerId === userId;
+
+  if (role === 'ADMIN' && !isOwner) {
+    throw new AppError('You can only add units to properties you own', 403);
+  }
+
+  if (role === 'MANAGER' && !isManager) {
     throw new AppError('You can only add units to properties you manage', 403);
   }
 

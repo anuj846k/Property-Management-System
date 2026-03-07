@@ -1,6 +1,6 @@
 {
-  "id": "b9e72c9e-c273-46e9-b850-bbedc76fda52",
-  "prevId": "ec5b276b-0609-4c00-9b66-f8ed02d028b9",
+  "id": "7e0e969e-06ba-4d46-8d77-f7ea254eedc2",
+  "prevId": "13a71d00-8e75-4b7a-b2e5-031f3cf91c02",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -191,11 +191,17 @@
           "primaryKey": false,
           "notNull": true
         },
+        "owner_id": {
+          "name": "owner_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
         "manager_id": {
           "name": "manager_id",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -205,8 +211,43 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "property_name_owner_idx": {
+          "name": "property_name_owner_idx",
+          "columns": [
+            {
+              "expression": "name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "owner_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
+        "properties_owner_id_users_id_fk": {
+          "name": "properties_owner_id_users_id_fk",
+          "tableFrom": "properties",
+          "tableTo": "users",
+          "columnsFrom": [
+            "owner_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
         "properties_manager_id_users_id_fk": {
           "name": "properties_manager_id_users_id_fk",
           "tableFrom": "properties",
@@ -223,59 +264,6 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.refresh_tokens": {
-      "name": "refresh_tokens",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "token": {
-          "name": "token",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "expires_at": {
-          "name": "expires_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "refresh_tokens_token_unique": {
-          "name": "refresh_tokens_token_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "token"
-          ]
-        }
-      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -608,15 +596,6 @@
         "COMMENTED"
       ]
     },
-    "public.role": {
-      "name": "role",
-      "schema": "public",
-      "values": [
-        "TENANT",
-        "MANAGER",
-        "TECHNICIAN"
-      ]
-    },
     "public.ticket_priority": {
       "name": "ticket_priority",
       "schema": "public",
@@ -634,6 +613,16 @@
         "ASSIGNED",
         "IN_PROGRESS",
         "DONE"
+      ]
+    },
+    "public.role": {
+      "name": "role",
+      "schema": "public",
+      "values": [
+        "ADMIN",
+        "MANAGER",
+        "TENANT",
+        "TECHNICIAN"
       ]
     }
   },

@@ -1,35 +1,40 @@
 import { Router } from 'express';
 import {
-  GetCurrentUser,
-  GetUserById,
-  GetUsers,
-  LoginUser,
-  LogoutUser,
-  RefreshToken,
-  RegisterUser,
-  UpdateUserById,
+  getCurrentUser,
+  getUserById,
+  getUsers,
+  loginUser,
+  logoutUser,
+  refreshToken,
+  registerUser,
+  updateUserById,
 } from './user.controllers.ts';
 import { authorizeRoles, isAuthenticated } from './user.middlewares.ts';
 
-const userRouter = Router();
+const userRouter: Router = Router();
 
-userRouter.post('/auth/register', RegisterUser);
-userRouter.post('/auth/login', LoginUser);
-userRouter.post('/auth/refresh', RefreshToken);
-userRouter.post('/auth/logout', LogoutUser);
-userRouter.get('/auth/me', isAuthenticated, GetCurrentUser);
-userRouter.get('/users', isAuthenticated, authorizeRoles('MANAGER'), GetUsers);
+userRouter.post('/auth/register', registerUser);
+userRouter.post('/auth/login', loginUser);
+userRouter.post('/auth/refresh', refreshToken);
+userRouter.post('/auth/logout', logoutUser);
+userRouter.get('/auth/me', isAuthenticated, getCurrentUser);
+userRouter.get(
+  '/users',
+  isAuthenticated,
+  authorizeRoles('ADMIN', 'MANAGER'),
+  getUsers,
+);
 userRouter.put(
   '/users/:id',
   isAuthenticated,
-  authorizeRoles('MANAGER'),
-  UpdateUserById,
+  authorizeRoles('ADMIN', 'MANAGER'),
+  updateUserById,
 );
 userRouter.get(
   '/users/:id',
   isAuthenticated,
-  authorizeRoles('MANAGER'),
-  GetUserById,
+  authorizeRoles('ADMIN', 'MANAGER'),
+  getUserById,
 );
 
 export default userRouter;

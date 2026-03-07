@@ -1,6 +1,6 @@
 {
-  "id": "177e4ec7-0f27-42b8-83d5-54f97a16d218",
-  "prevId": "b9e72c9e-c273-46e9-b850-bbedc76fda52",
+  "id": "82d92edc-01cc-4856-80d5-8d0d267f3130",
+  "prevId": "7e0e969e-06ba-4d46-8d77-f7ea254eedc2",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -191,11 +191,17 @@
           "primaryKey": false,
           "notNull": true
         },
+        "owner_id": {
+          "name": "owner_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
         "manager_id": {
           "name": "manager_id",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -207,6 +213,19 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "properties_owner_id_users_id_fk": {
+          "name": "properties_owner_id_users_id_fk",
+          "tableFrom": "properties",
+          "tableTo": "users",
+          "columnsFrom": [
+            "owner_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
         "properties_manager_id_users_id_fk": {
           "name": "properties_manager_id_users_id_fk",
           "tableFrom": "properties",
@@ -222,7 +241,16 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "property_name_owner_idx": {
+          "name": "property_name_owner_idx",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name",
+            "owner_id"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -578,10 +606,10 @@
       "name": "role",
       "schema": "public",
       "values": [
-        "TENANT",
+        "ADMIN",
         "MANAGER",
-        "TECHNICIAN",
-        "ADMIN"
+        "TENANT",
+        "TECHNICIAN"
       ]
     }
   },

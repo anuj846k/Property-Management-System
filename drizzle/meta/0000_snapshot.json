@@ -1,5 +1,5 @@
 {
-  "id": "ec5b276b-0609-4c00-9b66-f8ed02d028b9",
+  "id": "13a71d00-8e75-4b7a-b2e5-031f3cf91c02",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -191,11 +191,17 @@
           "primaryKey": false,
           "notNull": true
         },
+        "owner_id": {
+          "name": "owner_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
         "manager_id": {
           "name": "manager_id",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -207,6 +213,19 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "properties_owner_id_users_id_fk": {
+          "name": "properties_owner_id_users_id_fk",
+          "tableFrom": "properties",
+          "tableTo": "users",
+          "columnsFrom": [
+            "owner_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
         "properties_manager_id_users_id_fk": {
           "name": "properties_manager_id_users_id_fk",
           "tableFrom": "properties",
@@ -555,15 +574,6 @@
         "COMMENTED"
       ]
     },
-    "public.role": {
-      "name": "role",
-      "schema": "public",
-      "values": [
-        "TENANT",
-        "MANAGER",
-        "TECHNICIAN"
-      ]
-    },
     "public.ticket_priority": {
       "name": "ticket_priority",
       "schema": "public",
@@ -581,6 +591,16 @@
         "ASSIGNED",
         "IN_PROGRESS",
         "DONE"
+      ]
+    },
+    "public.role": {
+      "name": "role",
+      "schema": "public",
+      "values": [
+        "ADMIN",
+        "MANAGER",
+        "TENANT",
+        "TECHNICIAN"
       ]
     }
   },

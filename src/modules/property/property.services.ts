@@ -4,30 +4,35 @@ import type { PropertyCreateInput } from '#validations/property.validations.ts';
 import {
   createProperty,
   findPropertiesByManagerId,
+  findPropertiesByOwnerId,
   findPropertyById,
+  findPropertyByNameAndOwner,
   findUnitsByPropertyId,
   updatePropertyManager,
 } from './property.repositories.ts';
 import { findUserById } from '../user/user.repositories.ts';
 
 export const createPropertyService = async (
-  managerId: string,
+  ownerId: string,
   data: PropertyCreateInput,
 ) => {
   try {
     logger.info(
-      `createPropertyService called by managerId=${managerId} name=${data.name}`,
+      `createPropertyService called by ownerId=${ownerId} name=${data.name}`,
     );
+
+    const existing = await findPropertyByNameAndOwner(data.name, ownerId);
+    if (existing) {
+      throw new AppError('Property with this name already exists', 400);
+    }
 
     const property = await createProperty({
       name: data.name,
       address: data.address,
-      managerId,
+      ownerId,
     });
 
-    logger.info(
-      `Property created id=${property?.id} by managerId=${managerId}`,
-    );
+    logger.info(`Property created id=${property?.id} by ownerId=${ownerId}`);
     return property;
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
@@ -36,47 +41,69 @@ export const createPropertyService = async (
   }
 };
 
-export const getPropertiesForManagerService = async (managerId: string) => {
+export const getPropertiesService = async (userId: string, role: string) => {
   try {
-    logger.info(`getPropertiesForManagerService for managerId=${managerId}`);
-    const props = await findPropertiesByManagerId(managerId);
-    logger.info(
-      `Fetched ${props.length} properties for managerId=${managerId}`,
-    );
-    return props;
+    if (role === 'ADMIN') {
+      logger.info(`getPropertiesService for ownerId=${userId}`);
+      const props = await findPropertiesByOwnerId(userId);
+      logger.info(`Fetched ${props.length} properties for ownerId=${userId}`);
+      return props;
+    }
+
+    if (role === 'MANAGER') {
+      logger.info(`getPropertiesService for managerId=${userId}`);
+      const props = await findPropertiesByManagerId(userId);
+      logger.info(`Fetched ${props.length} properties for managerId=${userId}`);
+      return props;
+    }
+
+    throw new AppError('Unauthorized', 403);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
-    logger.error(
-      `getPropertiesForManagerService error: ${message}`,
-    );
+    logger.error(`getPropertiesService error: ${message}`);
     throw error;
   }
 };
 
 export const getPropertyByIdService = async (
   propertyId: string,
-  managerId: string,
+  userId: string,
+  role: string,
 ) => {
   const property = await findPropertyById(propertyId);
   if (!property) {
     throw new AppError('Property not found', 404);
   }
-  if (property.managerId !== managerId) {
+
+  // Allow access if user is owner OR manager
+  const isOwner = property.ownerId === userId;
+  const isManager = property.managerId === userId;
+
+  if (role === 'ADMIN' && !isOwner) {
+    throw new AppError('You can only view properties you own', 403);
+  }
+
+  if (role === 'MANAGER' && !isManager) {
     throw new AppError('You can only view properties you manage', 403);
   }
+
   const unitsList = await findUnitsByPropertyId(propertyId);
   return { property, units: unitsList };
 };
 
-// ...
-
 export const assignManagerToPropertyService = async (
   propertyId: string,
+  ownerId: string,
   newManagerId: string,
 ) => {
   const property = await findPropertyById(propertyId);
   if (!property) {
     throw new AppError('Property not found', 404);
+  }
+
+  // Only owner can assign manager
+  if (property.ownerId !== ownerId) {
+    throw new AppError('Only the owner can assign a manager', 403);
   }
 
   const user = await findUserById(newManagerId);
@@ -88,6 +115,8 @@ export const assignManagerToPropertyService = async (
   }
 
   const updated = await updatePropertyManager(propertyId, newManagerId);
-  logger.info(`Property ${propertyId} assigned to manager ${newManagerId}`);
+  logger.info(
+    `Property ${propertyId} assigned to manager ${newManagerId} by owner ${ownerId}`,
+  );
   return updated;
 };

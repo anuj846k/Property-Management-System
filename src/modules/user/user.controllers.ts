@@ -1,21 +1,26 @@
 import type { Request, Response } from 'express';
+import { config } from '#config/env.ts';
+import { successResponse } from '#utils/apiResponse.ts';
+import asyncHandler from '#utils/asyncHandler.ts';
 import { AppError } from '#utils/error.ts';
 import logger from '#utils/logger.ts';
 import * as userService from './user.services.ts';
 import { ALLOWED_USER_ROLES, type UserRole } from './user.types.ts';
 
-const isProduction = process.env.NODE_ENV === 'production';
-
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: isProduction,
+  secure: config.nodeEnv === 'production',
   sameSite: 'strict' as const,
 };
 
 const ACCESS_COOKIE_MAX_AGE = 15 * 60 * 1000;
 const REFRESH_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
-const setCookies = (res: Response, accessToken: string, refreshToken: string) => {
+const setCookies = (
+  res: Response,
+  accessToken: string,
+  refreshToken: string,
+) => {
   res.cookie('access_token', accessToken, {
     ...COOKIE_OPTIONS,
     maxAge: ACCESS_COOKIE_MAX_AGE,
@@ -26,156 +31,89 @@ const setCookies = (res: Response, accessToken: string, refreshToken: string) =>
   });
 };
 
-export const RegisterUser = async (req: Request, res: Response) => {
-  try {
-    const { email } = req.body;
-    logger.info(`Register request for email: ${email}`);
+export const registerUser = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  logger.info(`Register request for email: ${email}`);
 
-    const { accessToken, refreshToken } = await userService.RegisterUser(
-      req.body,
-    );
-    setCookies(res, accessToken, refreshToken);
+  const { accessToken, refreshToken } = await userService.createUser(req.body);
+  setCookies(res, accessToken, refreshToken);
 
-    logger.info(`User registered successfully: ${email}`);
-    res.status(201).json({ message: 'User registered successfully' });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    const statusCode = error instanceof AppError ? error.statusCode : 500;
-    logger.error(`Register failed: ${message}`);
-    res
-      .status(statusCode)
-      .json({ message: message || 'Internal Server Error' });
+  logger.info(`User registered successfully: ${email}`);
+  return successResponse(res, 'User registered successfully', {}, 201);
+});
+
+export const loginUser = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+  logger.info(`Login attempt for email: ${email}`);
+
+  const { accessToken, refreshToken } = await userService.loginUser(
+    email,
+    password,
+  );
+  setCookies(res, accessToken, refreshToken);
+
+  logger.info(`User logged in successfully: ${email}`);
+  return successResponse(res, 'Login successful');
+});
+
+export const getCurrentUser = asyncHandler(async (req, res) => {
+  if (!req.user?.userId) {
+    throw new AppError('Unauthorized', 401);
   }
-};
+  const user = await userService.getCurrentUser(req.user.userId);
+  logger.info(`Fetched current user: ${user.email}`);
+  return successResponse(res, 'User fetched successfully', { user });
+});
 
-export const LoginUser = async (req: Request, res: Response) => {
-  try {
-    const { email, password } = req.body;
-    logger.info(`Login attempt for email: ${email}`);
+export const getUsers = asyncHandler(async (req, res) => {
+  const { role } = req.query;
 
-    const { accessToken, refreshToken } = await userService.LoginUser(
-      email,
-      password,
-    );
-    setCookies(res, accessToken, refreshToken);
+  let roleFilter: UserRole | undefined;
 
-    logger.info(`User logged in successfully: ${email}`);
-    res.status(200).json({ message: 'Login successful' });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    const statusCode = error instanceof AppError ? error.statusCode : 500;
-    logger.error(`Login failed: ${message}`);
-    res
-      .status(statusCode)
-      .json({ message: message || 'Internal Server Error' });
-  }
-};
-
-export const GetCurrentUser = async (req: Request, res: Response) => {
-  try {
-    if (!req.user?.userId) {
-      throw new AppError('Unauthorized', 401);
+  if (role) {
+    if (!ALLOWED_USER_ROLES.includes(role as UserRole)) {
+      throw new AppError('Invalid role filter', 400);
     }
-    const user = await userService.GetCurrentUser(req.user.userId);
-    logger.info(`Fetched current user: ${user.email}`);
-    res.status(200).json({ user });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    const statusCode = error instanceof AppError ? error.statusCode : 500;
-    logger.error(`GetCurrentUser failed: ${message}`);
-    res
-      .status(statusCode)
-      .json({ message: message || 'Internal Server Error' });
+    roleFilter = role as UserRole;
   }
-};
 
-export const GetUsers = async (req: Request, res: Response) => {
-  try {
-    const { role } = req.query;
+  const users = await userService.getUsers(roleFilter);
+  return successResponse(res, 'Users fetched successfully', { users });
+});
 
-    let roleFilter: UserRole | undefined;
+export const getUserById = asyncHandler(async (req, res) => {
+  const { id } = req.params as { id: string };
+  logger.info(`Manager fetching user by id: ${id}`);
 
-    if (role) {
-      if (!ALLOWED_USER_ROLES.includes(role as UserRole)) {
-        return res.status(400).json({ message: 'Invalid role filter' });
-      }
-      roleFilter = role as UserRole;
-    }
+  const user = await userService.getUserById(id);
+  return successResponse(res, 'User fetched successfully', { user });
+});
 
-    const users = await userService.ListUsers(roleFilter);
-    res.status(200).json({ users });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    const statusCode = error instanceof AppError ? error.statusCode : 500;
-    logger.error(`GetUsers failed: ${message}`);
-    res
-      .status(statusCode)
-      .json({ message: message || 'Internal Server Error' });
+export const updateUserById = asyncHandler(async (req, res) => {
+  const { id } = req.params as { id: string };
+  logger.info(`Manager updating user ${id}`);
+
+  const updatedUser = await userService.updateUser(id, req.body);
+  return successResponse(res, 'User updated successfully', {
+    user: updatedUser,
+  });
+});
+
+export const refreshToken = asyncHandler(async (req, res) => {
+  const token = req.cookies.refresh_token;
+  if (!token) {
+    throw new AppError('Refresh token missing', 401);
   }
-};
 
-export const GetUserById = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    logger.info(`Manager fetching user by id: ${id}`);
+  const { accessToken, refreshToken: newRefreshToken } =
+    userService.refreshAccessToken(token);
+  setCookies(res, accessToken, newRefreshToken);
 
-    const user = await userService.GetUserByIdForManager(id);
-    res.status(200).json({ user });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    const statusCode = error instanceof AppError ? error.statusCode : 500;
-    logger.error(`GetUserById failed: ${message}`);
-    res
-      .status(statusCode)
-      .json({ message: message || 'Internal Server Error' });
-  }
-};
+  return successResponse(res, 'Token refreshed successfully');
+});
 
-export const UpdateUserById = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    logger.info(
-      `Manager updating user ${id} with body: ${JSON.stringify(req.body)}`,
-    );
-
-    const updatedUser = await userService.UpdateUserByIdForManager(
-      id,
-      req.body,
-    );
-    res.status(200).json({ user: updatedUser });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    const statusCode = error instanceof AppError ? error.statusCode : 500;
-    logger.error(`UpdateUserById failed: ${message}`);
-    res
-      .status(statusCode)
-      .json({ message: message || 'Internal Server Error' });
-  }
-};
-
-export const RefreshToken = async (req: Request, res: Response) => {
-  try {
-    const token = req.cookies.refresh_token;
-    if (!token) {
-      return res.status(401).json({ message: 'Refresh token missing' });
-    }
-
-    const { accessToken, refreshToken } = userService.RefreshAccessToken(token);
-    setCookies(res, accessToken, refreshToken);
-
-    res.status(200).json({ message: 'Token refreshed successfully' });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    const statusCode = error instanceof AppError ? error.statusCode : 401;
-    logger.error(`RefreshToken failed: ${message}`);
-    res
-      .status(statusCode)
-      .json({ message: message || 'Invalid refresh token' });
-  }
-};
-
-export const LogoutUser = (_req: Request, res: Response) => {
+export const logoutUser = (_req: Request, res: Response) => {
   res.clearCookie('access_token', COOKIE_OPTIONS);
   res.clearCookie('refresh_token', COOKIE_OPTIONS);
-  res.status(200).json({ message: 'Logged out successfully' });
+  return successResponse(res, 'Logged out successfully');
 };

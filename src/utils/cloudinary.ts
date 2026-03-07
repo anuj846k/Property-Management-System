@@ -1,11 +1,14 @@
 import fs from 'fs';
 import { v2 as cloudinary } from 'cloudinary';
+import { config } from '#config/env.ts';
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
-  api_key: process.env.CLOUDINARY_API_KEY!,
-  api_secret: process.env.CLOUDINARY_API_SECRET!,
-});
+if (config.cloudinary) {
+  cloudinary.config({
+    cloud_name: config.cloudinary.cloudName,
+    api_key: config.cloudinary.apiKey,
+    api_secret: config.cloudinary.apiSecret,
+  });
+}
 
 export const uploadToCloudinary = async (
   source: Buffer | string,

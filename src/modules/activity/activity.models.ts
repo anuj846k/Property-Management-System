@@ -2,12 +2,15 @@ import { pgTable, uuid, text, timestamp, pgEnum } from 'drizzle-orm/pg-core';
 import { tickets } from '../ticket/ticket.models.ts';
 import { users } from '../user/user.models.ts';
 
-export const actionTypeEnum = pgEnum('action_type', [
+export const actionTypes = [
   'CREATED',
   'ASSIGNED',
   'STATUS_CHANGED',
   'COMMENTED',
-]);
+] as const;
+export type ActionType = (typeof actionTypes)[number];
+
+export const actionTypeEnum = pgEnum('action_type', actionTypes);
 
 export const activityLogs = pgTable('activity_logs', {
   id: uuid('id').defaultRandom().primaryKey(),

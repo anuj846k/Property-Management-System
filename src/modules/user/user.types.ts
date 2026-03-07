@@ -1,20 +1,9 @@
-import { pgEnum } from 'drizzle-orm/pg-core';
+import { roleEnum, userRoles, type UserRole } from './user.models.ts';
 
-export const roleEnum = pgEnum('role', [
-  'TENANT',
-  'MANAGER',
-  'TECHNICIAN',
-  'ADMIN',
-]);
+export { roleEnum, userRoles };
+export type { UserRole };
 
-export type UserRole = 'TENANT' | 'MANAGER' | 'TECHNICIAN' | 'ADMIN';
-
-export const ALLOWED_USER_ROLES: UserRole[] = [
-  'TENANT',
-  'MANAGER',
-  'TECHNICIAN',
-  'ADMIN',
-];
+export const ALLOWED_USER_ROLES: readonly UserRole[] = userRoles;
 
 export type PublicUser = {
   id: string;

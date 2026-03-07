@@ -1,9 +1,14 @@
 import type { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import { config } from '#config/env.ts';
 import logger from '#utils/logger.ts';
 import type { TokenPayload } from './user.types.ts';
 
-export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+export const isAuthenticated = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const token = req.cookies.access_token;
 
   if (!token) {
@@ -14,7 +19,7 @@ export const isAuthenticated = (req: Request, res: Response, next: NextFunction)
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.ACCESS_SECRET!);
+    const decoded = jwt.verify(token, config.accessSecret);
     if (typeof decoded === 'string') {
       return res.status(401).json({ message: 'Invalid token' });
     }

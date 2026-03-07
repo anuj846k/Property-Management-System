@@ -2,18 +2,19 @@ import { pgTable, uuid, text, timestamp, pgEnum } from 'drizzle-orm/pg-core';
 import { units } from '../unit/unit.models.ts';
 import { users } from '../user/user.models.ts';
 
-export const ticketStatusEnum = pgEnum('ticket_status', [
+export const ticketStatuses = [
   'OPEN',
   'ASSIGNED',
   'IN_PROGRESS',
   'DONE',
-]);
+] as const;
+export type TicketStatus = (typeof ticketStatuses)[number];
 
-export const ticketPriorityEnum = pgEnum('ticket_priority', [
-  'LOW',
-  'MEDIUM',
-  'HIGH',
-]);
+export const ticketPriorities = ['LOW', 'MEDIUM', 'HIGH'] as const;
+export type TicketPriority = (typeof ticketPriorities)[number];
+
+export const ticketStatusEnum = pgEnum('ticket_status', ticketStatuses);
+export const ticketPriorityEnum = pgEnum('ticket_priority', ticketPriorities);
 
 export const tickets = pgTable('tickets', {
   id: uuid('id').defaultRandom().primaryKey(),

@@ -43,18 +43,17 @@ ticketRouter.get(
   getAllTicketsController,
 );
 
-ticketRouter.get(
-  '/:id',
-  isAuthenticated,
-  authorizeRoles('MANAGER', 'TENANT', 'TECHNICIAN'),
-  getTicketByIdController,
-);
-
 ticketRouter.patch(
   '/:id/assign',
   isAuthenticated,
-  authorizeRoles('MANAGER'),
+  authorizeRoles('ADMIN', 'MANAGER'),
   assignTicketController,
+);
+ticketRouter.patch(
+  '/:id/progress',
+  isAuthenticated,
+  authorizeRoles('TECHNICIAN'),
+  updateTicketProgressController,
 );
 ticketRouter.patch(
   '/:id',
@@ -63,12 +62,11 @@ ticketRouter.patch(
   updateTicketController,
 );
 
-
-ticketRouter.patch(
-  '/:id/progress',
+ticketRouter.get(
+  '/:id',
   isAuthenticated,
-  authorizeRoles('TECHNICIAN'),
-  updateTicketProgressController,
+  authorizeRoles('MANAGER', 'TENANT', 'TECHNICIAN'),
+  getTicketByIdController,
 );
 
 export default ticketRouter;

@@ -1,9 +1,10 @@
 import jwt from 'jsonwebtoken';
-import type { StringValue } from 'ms';
+import { config } from '#config/env.ts';
 import { hashPassword, VerifyPassword } from '#utils/argon.ts';
 import { AppError } from '#utils/error.ts';
 import logger from '#utils/logger.ts';
-import { userSchema } from '#validations/user.validations.ts';
+import { formatZodError } from '#utils/zod.ts';
+import { userSchema, updateUserSchema } from '#validations/user.validations.ts';
 import {
   findExistingUser,
   findUserById,
@@ -11,41 +12,37 @@ import {
   registerUser,
   updateUserById,
 } from './user.repositories.ts';
-import type {
-  PublicUser,
-  TokenPayload,
-  UpdateUserPayload,
-  UserRole,
-} from './user.types.ts';
+import type { PublicUser, TokenPayload, UserRole } from './user.types.ts';
 
-const ACCESS_SECRET = process.env.ACCESS_SECRET!;
-const REFRESH_SECRET = process.env.REFRESH_SECRET!;
-const ACCESS_TOKEN_EXPIRY = (process.env.ACCESS_TOKEN_EXPIRY ||
-  '15m') as StringValue;
-const REFRESH_TOKEN_EXPIRY = (process.env.REFRESH_TOKEN_EXPIRY ||
-  '7d') as StringValue;
-
-export const RegisterUser = async (data: unknown) => {
-  logger.info(`Register attempt with data: ${JSON.stringify(data)}`);
+export const createUser = async (data: unknown) => {
+  logger.info(
+    `Register attempt with email: ${(data as { email?: string }).email}`,
+  );
 
   const validatedData = userSchema.safeParse(data);
   if (!validatedData.success) {
-    const messages = validatedData.error.issues
-      .map((issue) => issue.message)
-      .join(', ');
-    logger.warn(`Validation failed: ${messages}`);
-    throw new AppError(messages, 400);
+    const messages = formatZodError(validatedData.error);
+    logger.warn(`Validation failed: ${messages}`, { received: data });
+    throw new AppError(`Validation error: ${messages}`, 400);
   }
 
   const { name, email, password, role, phone } = validatedData.data;
 
-  const existingUser = await findExistingUser(email, phone);
+  logger.info('Validated data:', {
+    name: !!name,
+    email: !!email,
+    password: !!password,
+    role,
+    phone: !!phone,
+  });
+
+  const existingUser = await findExistingUser(email, phone || undefined);
   if (existingUser) {
     if (existingUser.email === email) {
       logger.warn(`Registration failed - Email already in use: ${email}`);
       throw new AppError('Email already in use', 400);
     }
-    if (existingUser.phone === phone) {
+    if (phone && existingUser.phone === phone) {
       logger.warn(`Registration failed - Phone already in use: ${phone}`);
       throw new AppError('Phone number already in use', 400);
     }
@@ -53,7 +50,13 @@ export const RegisterUser = async (data: unknown) => {
 
   const hashedPassword = await hashPassword(password);
 
-  const user = await registerUser({ name, email, hashedPassword, phone, role });
+  const user = await registerUser({
+    name,
+    email,
+    hashedPassword,
+    phone: phone || null,
+    role,
+  });
   if (!user) {
     logger.error(`Failed to register user: ${email}`);
     throw new AppError('Failed to register user', 500);
@@ -61,20 +64,20 @@ export const RegisterUser = async (data: unknown) => {
 
   const accessToken = jwt.sign(
     { userId: user.id, role: user.role },
-    ACCESS_SECRET,
-    { expiresIn: ACCESS_TOKEN_EXPIRY },
+    config.accessSecret,
+    { expiresIn: config.accessTokenExpiry },
   );
   const refreshToken = jwt.sign(
     { userId: user.id, role: user.role },
-    REFRESH_SECRET,
-    { expiresIn: REFRESH_TOKEN_EXPIRY },
+    config.refreshSecret,
+    { expiresIn: config.refreshTokenExpiry },
   );
 
   logger.info(`User registered successfully: ${email}`);
   return { accessToken, refreshToken };
 };
 
-export const LoginUser = async (email: string, password: string) => {
+export const loginUser = async (email: string, password: string) => {
   logger.info(`Login attempt for email: ${email}`);
 
   if (!email || !password) {
@@ -96,20 +99,20 @@ export const LoginUser = async (email: string, password: string) => {
 
   const accessToken = jwt.sign(
     { userId: user.id, role: user.role },
-    ACCESS_SECRET,
-    { expiresIn: ACCESS_TOKEN_EXPIRY },
+    config.accessSecret,
+    { expiresIn: config.accessTokenExpiry },
   );
   const refreshToken = jwt.sign(
     { userId: user.id, role: user.role },
-    REFRESH_SECRET,
-    { expiresIn: REFRESH_TOKEN_EXPIRY },
+    config.refreshSecret,
+    { expiresIn: config.refreshTokenExpiry },
   );
 
   logger.info(`User logged in successfully: ${email}`);
   return { accessToken, refreshToken };
 };
 
-export const GetCurrentUser = async (userId: string) => {
+export const getCurrentUser = async (userId: string) => {
   logger.info(`Fetching user with ID: ${userId}`);
   const user = await findUserById(userId);
 
@@ -122,7 +125,7 @@ export const GetCurrentUser = async (userId: string) => {
   return toPublicUser(user);
 };
 
-export const ListUsers = async (role?: UserRole) => {
+export const getUsers = async (role?: UserRole) => {
   logger.info(`Listing users${role ? ` with role: ${role}` : ''}`);
   return listUsers(role);
 };
@@ -136,9 +139,7 @@ const toPublicUser = (u: PublicUser): PublicUser => ({
   createdAt: u.createdAt,
 });
 
-export const GetUserByIdForManager = async (
-  id: string,
-): Promise<PublicUser> => {
+export const getUserById = async (id: string): Promise<PublicUser> => {
   const user = await findUserById(id);
   if (!user) {
     throw new AppError('User not found', 404);
@@ -146,15 +147,30 @@ export const GetUserByIdForManager = async (
   return toPublicUser(user);
 };
 
-export const UpdateUserByIdForManager = async (
+export const updateUser = async (
   id: string,
-  payload: UpdateUserPayload,
+  payload: unknown,
 ): Promise<PublicUser> => {
-  if (!payload.name && !payload.phone && !payload.role) {
-    throw new AppError('No fields to update', 400);
+  const validatedData = updateUserSchema.safeParse(payload);
+  if (!validatedData.success) {
+    const messages = formatZodError(validatedData.error);
+    logger.warn(`Update validation failed: ${messages}`);
+    throw new AppError(`Validation error: ${messages}`, 400);
   }
 
-  const updated = await updateUserById(id, payload);
+  const updateData = {
+    ...(validatedData.data.name !== undefined && {
+      name: validatedData.data.name,
+    }),
+    ...(validatedData.data.phone !== undefined && {
+      phone: validatedData.data.phone,
+    }),
+    ...(validatedData.data.role !== undefined && {
+      role: validatedData.data.role,
+    }),
+  };
+
+  const updated = await updateUserById(id, updateData);
   if (!updated) {
     throw new AppError('User not found', 404);
   }
@@ -162,25 +178,28 @@ export const UpdateUserByIdForManager = async (
   return toPublicUser(updated);
 };
 
-export const RefreshAccessToken = (refreshToken: string) => {
+export const refreshAccessToken = (refreshToken: string) => {
   try {
-    const decoded = jwt.verify(refreshToken, REFRESH_SECRET) as TokenPayload;
+    const decoded = jwt.verify(
+      refreshToken,
+      config.refreshSecret,
+    ) as TokenPayload;
 
     const accessToken = jwt.sign(
       { userId: decoded.userId, role: decoded.role },
-      ACCESS_SECRET,
-      { expiresIn: ACCESS_TOKEN_EXPIRY },
+      config.accessSecret,
+      { expiresIn: config.accessTokenExpiry },
     );
     const newRefreshToken = jwt.sign(
       { userId: decoded.userId, role: decoded.role },
-      REFRESH_SECRET,
-      { expiresIn: REFRESH_TOKEN_EXPIRY },
+      config.refreshSecret,
+      { expiresIn: config.refreshTokenExpiry },
     );
 
     return { accessToken, refreshToken: newRefreshToken };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
-    logger.error(`RefreshAccessToken error: ${message}`);
+    logger.error(`refreshAccessToken error: ${message}`);
     throw new AppError('Invalid or expired refresh token', 401);
   }
 };

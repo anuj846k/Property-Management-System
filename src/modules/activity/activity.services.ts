@@ -34,6 +34,15 @@ export const getTicketActivityService = async (
     if (!property || property.managerId !== user.userId) {
       throw new AppError('You do not have access to this ticket', 403);
     }
+  } else if (user.role === 'ADMIN') {
+    const unit = await findUnitById(ticket.unitId);
+    if (!unit) {
+      throw new AppError('Ticket unit not found', 404);
+    }
+    const property = await findPropertyById(unit.propertyId);
+    if (!property || property.ownerId !== user.userId) {
+      throw new AppError('You do not have access to this ticket', 403);
+    }
   } else {
     throw new AppError('You do not have access to this ticket', 403);
   }

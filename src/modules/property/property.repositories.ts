@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { db } from '#db/db.ts';
 import { properties } from './property.models.ts';
 import { units } from '../unit/unit.models.ts';
@@ -6,7 +6,7 @@ import { units } from '../unit/unit.models.ts';
 type CreatePropertyRepoInput = {
   name: string;
   address: string;
-  managerId: string;
+  ownerId: string;
 };
 
 export const createProperty = async (data: CreatePropertyRepoInput) => {
@@ -15,11 +15,20 @@ export const createProperty = async (data: CreatePropertyRepoInput) => {
     .values({
       name: data.name,
       address: data.address,
-      managerId: data.managerId,
+      ownerId: data.ownerId,
+      managerId: null,
     })
     .returning();
 
   return property;
+};
+
+export const findPropertiesByOwnerId = async (ownerId: string) => {
+  const results = await db
+    .select()
+    .from(properties)
+    .where(eq(properties.ownerId, ownerId));
+  return results;
 };
 
 export const findPropertiesByManagerId = async (managerId: string) => {
@@ -35,6 +44,18 @@ export const findPropertyById = async (id: string) => {
     .select()
     .from(properties)
     .where(eq(properties.id, id))
+    .limit(1);
+  return property ?? null;
+};
+
+export const findPropertyByNameAndOwner = async (
+  name: string,
+  ownerId: string,
+) => {
+  const [property] = await db
+    .select()
+    .from(properties)
+    .where(and(eq(properties.name, name), eq(properties.ownerId, ownerId)))
     .limit(1);
   return property ?? null;
 };

@@ -1,10 +1,12 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
-import 'dotenv/config';
+import { config } from '#config/env.ts';
 
-const client = new pg.Client({
-  connectionString: process.env.DATABASE_URL!,
+export const pool = new pg.Pool({
+  connectionString: config.databaseUrl,
+  max: 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
 });
-await client.connect();
 
-export const db = drizzle(client);
+export const db = drizzle(pool);

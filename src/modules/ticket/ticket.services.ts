@@ -12,6 +12,7 @@ import {
   createTicketImage,
   findActivityLogsByTicketId,
   findAllTicketsForManager,
+  findAllTicketsForOwner,
   findTicketById,
   findTicketImagesByTicketId,
   findTicketsByTechnicianId,
@@ -118,15 +119,27 @@ export const getMyTicketsService = async (tenantId: string) => {
 };
 
 export const getAllTicketsService = async (
-  managerId: string,
+  userId: string,
+  role: string,
   filters?: ListTicketsFilters,
 ) => {
   try {
-    const results = await findAllTicketsForManager(managerId, filters);
-    logger.info(
-      `Fetched ${results.length} tickets for managerId=${managerId} with filters`,
-      { filters },
-    );
+    let results;
+    if (role === 'ADMIN') {
+      results = await findAllTicketsForOwner(userId, filters);
+      logger.info(
+        `Fetched ${results.length} tickets for ownerId=${userId} with filters`,
+        { filters },
+      );
+    } else if (role === 'MANAGER') {
+      results = await findAllTicketsForManager(userId, filters);
+      logger.info(
+        `Fetched ${results.length} tickets for managerId=${userId} with filters`,
+        { filters },
+      );
+    } else {
+      throw new AppError('Unauthorized', 403);
+    }
     return results;
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
@@ -137,10 +150,7 @@ export const getAllTicketsService = async (
 
 type UserForAccess = { userId: string; role: string };
 
-export const getTicketByIdService = async (
-  ticketId: string,
-  user: UserForAccess,
-) => {
+const checkTicketAccess = async (ticketId: string, user: UserForAccess) => {
   const ticket = await findTicketById(ticketId);
   if (!ticket) {
     throw new AppError('Ticket not found', 404);
@@ -163,29 +173,42 @@ export const getTicketByIdService = async (
     if (!property || property.managerId !== user.userId) {
       throw new AppError('You do not have access to this ticket', 403);
     }
+  } else if (user.role === 'ADMIN') {
+    const unit = await findUnitById(ticket.unitId);
+    if (!unit) {
+      throw new AppError('Ticket unit not found', 404);
+    }
+    const property = await findPropertyById(unit.propertyId);
+    if (!property || property.ownerId !== user.userId) {
+      throw new AppError('You do not have access to this ticket', 403);
+    }
   }
+
+  return ticket;
+};
+
+export const getTicketByIdService = async (
+  ticketId: string,
+  user: UserForAccess,
+) => {
+  const ticket = await checkTicketAccess(ticketId, user);
 
   const [images, activity] = await Promise.all([
     findTicketImagesByTicketId(ticketId),
     findActivityLogsByTicketId(ticketId),
   ]);
 
-  if (user.role === 'ADMIN') {
-    return { ticket, images, activity };
-  } else {
-    throw new AppError('You do not have access to this ticket', 403);
-  }
-
   return { ticket, images, activity };
 };
 
 /**
- * Assigns a technician to a ticket. Manager must have access to the ticket's property.
+ * Assigns a technician to a ticket. Manager or Owner must have access to the ticket's property.
  * Sets status to ASSIGNED and creates ASSIGNED activity log.
  */
 export const assignTicketService = async (
   ticketId: string,
-  managerId: string,
+  userId: string,
+  role: string,
   data: TicketAssignInput,
 ) => {
   const ticket = await findTicketById(ticketId);
@@ -193,13 +216,23 @@ export const assignTicketService = async (
     throw new AppError('Ticket not found', 404);
   }
 
-  // Verify manager has access (same logic as getTicketByIdService)
   const unit = await findUnitById(ticket.unitId);
   if (!unit) {
     throw new AppError('Ticket unit not found', 404);
   }
   const property = await findPropertyById(unit.propertyId);
-  if (!property || property.managerId !== managerId) {
+  if (!property) {
+    throw new AppError('Property not found', 404);
+  }
+
+  // Allow if user is owner OR manager
+  const isOwner = property.ownerId === userId;
+  const isManager = property.managerId === userId;
+
+  if (role === 'ADMIN' && !isOwner) {
+    throw new AppError('You do not have access to this ticket', 403);
+  }
+  if (role === 'MANAGER' && !isManager) {
     throw new AppError('You do not have access to this ticket', 403);
   }
 
@@ -225,7 +258,7 @@ export const assignTicketService = async (
 
   await createActivityLog({
     ticketId,
-    performedBy: managerId,
+    performedBy: userId,
     actionType: 'ASSIGNED',
     oldValue: `Technician: ${previousTechnicianId ?? 'Unassigned'}; Status: ${
       previousStatus ?? 'OPEN'
@@ -240,18 +273,19 @@ export const assignTicketService = async (
   );
 
   logger.info(
-    `Ticket ${ticketId} assigned to technician ${data.technicianId} by manager ${managerId}`,
+    `Ticket ${ticketId} assigned to technician ${data.technicianId} by user ${userId}`,
   );
   return updated;
 };
 
 /**
- * Updates ticket priority and/or status. Manager must have access to the ticket's property.
+ * Updates ticket priority and/or status. Manager or Owner must have access.
  * Creates STATUS_CHANGED activity log for each change.
  */
 export const updateTicketService = async (
   ticketId: string,
-  managerId: string,
+  userId: string,
+  role: string,
   data: TicketUpdateInput,
 ) => {
   const ticket = await findTicketById(ticketId);
@@ -259,13 +293,23 @@ export const updateTicketService = async (
     throw new AppError('Ticket not found', 404);
   }
 
-  // Verify manager has access
   const unit = await findUnitById(ticket.unitId);
   if (!unit) {
     throw new AppError('Ticket unit not found', 404);
   }
   const property = await findPropertyById(unit.propertyId);
-  if (!property || property.managerId !== managerId) {
+  if (!property) {
+    throw new AppError('Property not found', 404);
+  }
+
+  // Allow if user is owner OR manager
+  const isOwner = property.ownerId === userId;
+  const isManager = property.managerId === userId;
+
+  if (role === 'ADMIN' && !isOwner) {
+    throw new AppError('You do not have access to this ticket', 403);
+  }
+  if (role === 'MANAGER' && !isManager) {
     throw new AppError('You do not have access to this ticket', 403);
   }
 
@@ -286,7 +330,7 @@ export const updateTicketService = async (
   }
 
   if (Object.keys(updates).length === 0) {
-    return ticket; // No changes
+    return ticket;
   }
 
   const updated = await updateTicket(ticketId, updates);
@@ -296,13 +340,13 @@ export const updateTicketService = async (
 
   await createActivityLog({
     ticketId,
-    performedBy: managerId,
+    performedBy: userId,
     actionType: 'STATUS_CHANGED',
     oldValue: `Priority: ${ticket.priority}, Status: ${ticket.status}`,
     newValue: activityMessages.join('; '),
   });
 
-  logger.info(`Ticket ${ticketId} updated by manager ${managerId}`, {
+  logger.info(`Ticket ${ticketId} updated by user ${userId}`, {
     updates,
   });
   return updated;

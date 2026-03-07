@@ -1,5 +1,6 @@
 import { eq, or } from 'drizzle-orm';
 import { db } from '#db/db.ts';
+import { AppError } from '#utils/error.ts';
 import { users } from './user.models.ts';
 import type { PublicUser, UserRole } from './user.types.ts';
 
@@ -7,7 +8,7 @@ type UserData = {
   name: string;
   email: string;
   hashedPassword: string;
-  phone: string;
+  phone: string | null;
   role: UserRole;
 };
 
@@ -28,7 +29,7 @@ export const registerUser = async (data: UserData) => {
 
 export const findExistingUser = async (email?: string, phone?: string) => {
   if (!email && !phone) {
-    throw new Error('Email or phone must be provided');
+    throw new AppError('Email or phone must be provided', 400);
   }
 
   const user = await db
@@ -72,9 +73,21 @@ export const updateUserById = async (
   id: string,
   data: Partial<Pick<UserData, 'name' | 'phone' | 'role'>>,
 ) => {
+  const updateData: Partial<Pick<UserData, 'name' | 'phone' | 'role'>> = {};
+
+  if (data.name !== undefined) {
+    updateData.name = data.name;
+  }
+  if (data.phone !== undefined) {
+    updateData.phone = data.phone;
+  }
+  if (data.role !== undefined) {
+    updateData.role = data.role;
+  }
+
   const [updated] = await db
     .update(users)
-    .set(data)
+    .set(updateData)
     .where(eq(users.id, id))
     .returning();
 

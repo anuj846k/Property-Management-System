@@ -5,7 +5,7 @@ import {
   getPropertyByIdController,
   assignManagerController,
 } from './property.controllers.ts';
-import { createUnitController } from '../unit/unit.controller.ts';
+import { createUnitController } from '../unit/unit.controllers.ts';
 import { isAuthenticated, authorizeRoles } from '../user/user.middlewares.ts';
 
 const propertyRouter: Router = Router();
@@ -22,7 +22,7 @@ propertyRouter.post(
 propertyRouter.get(
   '/',
   isAuthenticated,
-  authorizeRoles('ADMIN'),
+  authorizeRoles('ADMIN', 'MANAGER'),
   getPropertiesController,
 );
 
@@ -30,7 +30,7 @@ propertyRouter.get(
 propertyRouter.get(
   '/:id',
   isAuthenticated,
-  authorizeRoles('ADMIN'),
+  authorizeRoles('ADMIN', 'MANAGER'),
   getPropertyByIdController,
 );
 
